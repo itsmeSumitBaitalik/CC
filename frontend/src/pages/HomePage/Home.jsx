@@ -1,15 +1,15 @@
 import React from "react";
 import Navbar from "./Navbar/Navbar";
-import LandingPage from "./LandingPage/LandingPage";
 import Footer from "./Footer/Footer";
+import { Outlet } from "react-router-dom";
 
 const Home = () => {
   return (
-    <div className="bg-retro-yellow font-display text-black min-h-screen">
-      {/* <h1>Welcome to home</h1>
-      <button className="btn btn-primary">Smash</button> */}
+    <div className="bg-retro-yellow font-display text-black min-h-screen flex flex-col">
       <Navbar/>
-      <LandingPage/>
+      <main className="flex-1">
+        <Outlet />
+      </main>
       <Footer/>
     </div>
   );

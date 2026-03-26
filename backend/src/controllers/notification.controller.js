@@ -1,5 +1,5 @@
-import FriendsRequest from "../db/model/friendsSchema.js";
-import Notification from "../db/model/notificationSchema.js";
+import FriendsRequest from "../model/Friends.js";
+import Notification from "../model/Notification.js";
 
 //Notification controller
 export const createNotification = async (userId, type, referenceId,message) => {

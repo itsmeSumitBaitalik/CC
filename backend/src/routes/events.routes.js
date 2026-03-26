@@ -4,9 +4,9 @@ import { createEvent,updateEvent,deleteEvent } from "../controllers/event.contro
 const eventRoute = express.Router();
 
 eventRoute.post("/create", createEvent);
-eventRoute.post("/update/:id", updateEvent);
-eventRoute.post("/delete/:id", deleteEvent);
+eventRoute.put("/update/:id", updateEvent);
+eventRoute.delete("/delete/:id", deleteEvent);
 
 
-const eventsRoute = eventRoute;
-export default eventsRoute;
+// const eventsRoute = eventRoute;
+export default eventRoute;

@@ -1,4 +1,4 @@
-import Event from "../db/model/eventsSchema.js";
+import Event from "../model/Events.js";
 
 export const createEvent = async (req, res) => {
   const {

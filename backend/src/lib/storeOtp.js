@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { generateOTP } from "./otpGenerator.js";
-import Otp from "../db/model/otpSchema.js";
+import Otp from "../model/Otp.js";
 
 export async function createOtpForUser(userId, type) {
   const otp = generateOTP(6);

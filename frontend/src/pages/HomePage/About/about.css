@@ -1,0 +1,40 @@
+.marquee-container { overflow: hidden; white-space: nowrap; display: flex; width: 100%; }
+.marquee-wrapper { display: flex; white-space: nowrap; width: max-content; animation: marqueeSlide 18s linear infinite; }
+
+@keyframes marqueeSlide { 
+  0% { transform: translateX(0%); } 
+  100% { transform: translateX(-50%); } 
+}
+
+@keyframes floatIcon {
+  0%   { transform: translateY(0px) rotate(var(--rotation)); }
+  50%  { transform: translateY(-10px) rotate(var(--rotation)); }
+  100% { transform: translateY(0px) rotate(var(--rotation)); }
+}
+
+.floating-icon-box { 
+  animation: floatIcon 3s ease-in-out infinite; 
+}
+
+/* Diagonal stripe pattern for hero */
+.stripe-bg {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 10px,
+    rgba(0,0,0,0.04) 10px,
+    rgba(0,0,0,0.04) 20px
+  );
+}
+
+/* Timeline line */
+.timeline-line { position: relative; }
+.timeline-line::before {
+  content: '';
+  position: absolute;
+  left: 23px;
+  top: 60px;
+  bottom: 0;
+  width: 3px;
+  background: #000;
+}

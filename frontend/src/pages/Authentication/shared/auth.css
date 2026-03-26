@@ -1,0 +1,66 @@
+/* ─────────────────────────────────────────────────────
+   Shared Auth CSS — used by both Login and Signup pages
+   Only styles that Tailwind cannot express go here
+   ───────────────────────────────────────────────────── */
+
+/* Grid dot background */
+.auth-bg {
+  background-image:
+    repeating-linear-gradient(
+      0deg, transparent, transparent 39px,
+      rgba(0, 0, 0, 0.06) 39px, rgba(0, 0, 0, 0.06) 40px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent, transparent 39px,
+      rgba(0, 0, 0, 0.06) 39px, rgba(0, 0, 0, 0.06) 40px
+    );
+}
+
+/* Ticker scroll animation */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-scroll {
+  animation: ticker 22s linear infinite;
+}
+
+/* Hero accent — -webkit-text-stroke not available in Tailwind */
+.hero-accent {
+  color: #fff;
+  -webkit-text-stroke: 2px #000;
+}
+
+/* Material Symbols Outlined font for absolute-positioned input icons */
+.input-icon {
+  font-family: "Material Symbols Outlined";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #888;
+  pointer-events: none;
+}
+
+/* Password visibility toggle */
+.toggle-pw {
+  font-family: "Material Symbols Outlined";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #888;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Native select arrow removal — no Tailwind equivalent */
+.select-input {
+  appearance: none;
+  -webkit-appearance: none;
+}

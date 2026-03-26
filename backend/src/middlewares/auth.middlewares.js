@@ -1,7 +1,7 @@
 import { verifyToken } from "../lib/tokens.js";
 
 
-export function authenticate(req, res, next) {
+function auth(req, res, next) {
   const authHeader = req.headers.authorization;
   // console.log("authHeader", authHeader);
 
@@ -27,3 +27,5 @@ export function authenticate(req, res, next) {
     return res.status(403).json({ message: "Invalid token" });
   }
 }
+
+export default auth;

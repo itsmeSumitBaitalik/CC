@@ -1,6 +1,6 @@
 import { sendEmail } from "../lib/mailGenrator.js";
 import { generateToken } from "../lib/tokens.js";
-import User from "../db/model/user.js";
+import User from "../model/User.js";
 import { createOtpForUser } from "../lib/storeOtp.js";
 import bcrypt from "bcryptjs";
 

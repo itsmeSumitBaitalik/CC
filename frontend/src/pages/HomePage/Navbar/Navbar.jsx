@@ -1,16 +1,13 @@
-import React from "react";
-// import "../Css/landing.css";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   /* Common styles */
-
   const borderBox = "border-4 border-black shadow-retro";
-
-  const navLink =
-    "bg-white border-4 border-black px-4 py-2 font-bold hover:bg-black hover:text-white transition-colors";
-
-  const buttonStyle =
-    "border-4 border-black px-6 py-2 font-bold shadow-retro hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all";
+  const navLink = "bg-white border-4 border-black px-4 py-2 font-bold hover:bg-black hover:text-white transition-colors block text-center md:inline-block md:text-left";
+  const buttonStyle = "border-4 border-black px-6 py-2 font-bold shadow-retro hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all w-full md:w-auto text-center";
 
   return (
     <nav
@@ -19,82 +16,65 @@ export default function Navbar() {
         background: "rgba(245, 166, 35, 0.25)",
         backdropFilter: "blur(30px)",
         WebkitBackdropFilter: "blur(30px)",
-        borderBottom:'5px solid',
+        borderBottom: '5px solid',
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-
-        <div className={`bg-white px-8 py-2 ${borderBox}`}>
-          <h1 className="text-2xl font-bold tracking-tighter uppercase">
+        <div className={`bg-white px-4 md:px-8 py-2 ${borderBox} shrink-0`}>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tighter uppercase whitespace-nowrap">
             CampusConnect
           </h1>
         </div>
 
-        {/* Navigation Links */}
+        {/* Mobile menu toggle button */}
+        <button 
+          className="lg:hidden flex items-center justify-center bg-white border-4 border-black p-2 shadow-retro hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <span className="material-symbols-outlined font-black block">
+            {isMenuOpen ? 'close' : 'menu'}
+          </span>
+        </button>
 
-        <div className={`flex gap-2 bg-white/30 p-2 ${borderBox}`}>
-          <a className={navLink} href="#">
+        {/* Desktop Navigation Links */}
+        <div className={`hidden lg:flex gap-2 bg-white/30 p-2 ${borderBox}`}>
+          <a className={navLink} href="/about">
             About Us
           </a>
-
-          <a className={navLink} href="#">
+          <a className={navLink} href="/">
             Home
           </a>
-
           <a className={navLink} href="#">
             Contact Us
           </a>
         </div>
 
-        {/* Auth Buttons */}
-
-        <div className="flex gap-2">
-          <button className={`${buttonStyle} bg-[#4CAF50]`}>
+        {/* Desktop Auth Buttons */}
+        <div className="hidden lg:flex gap-2 shrink-0">
+          <NavLink to="/login" className={`${buttonStyle} bg-[#4CAF50]`}>
             Login
-          </button>
-
-          <button className={`${buttonStyle} bg-[#E05C3A] text-white`}>
+          </NavLink>
+          <NavLink to="/signup" className={`${buttonStyle} bg-[#E05C3A] text-white`}>
             Signup
-          </button>
+          </NavLink>
         </div>
-
       </div>
+
+      {/* Mobile Dropdown Menu */}
+      {isMenuOpen && (
+        <div className="lg:hidden absolute top-full left-0 w-full bg-retro-yellow border-b-4 border-black p-4 flex flex-col gap-4 shadow-retro-lg z-50">
+          <div className={`flex flex-col gap-2 bg-white/30 p-3 ${borderBox}`}>
+            <a className={navLink} href="/about" onClick={() => setIsMenuOpen(false)}>About Us</a>
+            <a className={navLink} href="/" onClick={() => setIsMenuOpen(false)}>Home</a>
+            <a className={navLink} href="#" onClick={() => setIsMenuOpen(false)}>Contact Us</a>
+          </div>
+          <div className="flex flex-col gap-3">
+            <NavLink to="/login" className={`${buttonStyle} bg-[#4CAF50]`} onClick={() => setIsMenuOpen(false)}>Login</NavLink>
+            <NavLink to="/signup" className={`${buttonStyle} bg-[#E05C3A] text-white`} onClick={() => setIsMenuOpen(false)}>Signup</NavLink>
+          </div>
+        </div>
+      )}
     </nav>
-    // <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-    //   <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/30 backdrop-blur-[30px] border-[3px] border-black p-3">
-    //     {/* Logo */}
-    //     <div className="bg-white border-[3px] border-black px-4 py-1">
-    //       <span className="text-xl font-bold tracking-tighter">
-    //         CAMPUSCONNECT
-    //       </span>
-    //     </div>
-
-    //     {/* Links */}
-    //     <div className="hidden md:flex gap-4">
-    //       <button className="bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_black] px-4 py-1 font-bold uppercase hover:bg-black hover:text-white transition-all duration-200">
-    //         Home
-    //       </button>
-
-    //       <button className="bg-black text-white border-[3px] border-black shadow-[4px_4px_0px_0px_black] px-4 py-1 font-bold uppercase transition-all duration-200">
-    //         About Us
-    //       </button>
-
-    //       <button className="bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_black] px-4 py-1 font-bold uppercase hover:bg-black hover:text-white transition-all duration-200">
-    //         Contact Us
-    //       </button>
-    //     </div>
-
-    //     {/* Auth Buttons */}
-    //     <div className="flex gap-2">
-    //       <button className={`${buttonStyle} bg-[#4CAF50]`}>Login</button>
-
-    //       <button className={`${buttonStyle} bg-[#E05C3A] text-white`}>
-    //         Signup
-    //       </button>
-    //     </div>
-    //   </div>
-    // </nav>
   );
 }

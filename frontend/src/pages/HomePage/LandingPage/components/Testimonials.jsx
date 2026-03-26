@@ -1,4 +1,27 @@
 export default function Testimonials() {
+  const testimonialsData = [
+    {
+      id: 1,
+      name: "Aryan Mehta",
+      college: "VJTI Mumbai, 2nd Year",
+      testimonial: "I found out about my college's biggest hackathon through CampusConnect just 2 days before registration closed. Won 2nd place!",
+      color: "#F5A623",
+    },
+    {
+      id: 2,
+      name: "Priya Sharma",
+      college: "DTU Delhi, 1st Year",
+      testimonial: "The anonymous chat helped me make 3 real friends in my first week. It felt way less scary than walking up to strangers.",
+      color: "#4CAF50",
+    },
+    {
+      id: 3,
+      name: "Karan Patel",
+      college: "BITS Pilani, 3rd Year",
+      testimonial: "Found my mentor through the platform. He helped me crack my first internship interview. Couldn't have done it alone.",
+      color: "#E05C3A",
+    },
+  ];
   return (
     <section className="max-w-6xl mx-auto px-6 py-12 relative">
 
@@ -15,58 +38,30 @@ export default function Testimonials() {
           Real stories from real students across India.
         </p>
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8" >
+        {testimonialsData.map((item, index) => (
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white border-4 border-black p-8 shadow-retro flex flex-col" key={index}>
+            <span className="text-6xl font-black text-[#F5A623] leading-none block mb-4">
+              "
+            </span>
 
-        <div className="bg-white border-4 border-black p-8 shadow-retro">
-          <span className="text-6xl font-black text-[#F5A623] leading-none block mb-4">
-            "
-          </span>
+            <div className="flex flex-col justify-between h-full" >
+              <p className="text-lg font-bold mb-6">
+                {item.testimonial}
+              </p>
 
-          <p className="text-lg font-bold mb-6">
-            I found out about my college's biggest hackathon through
-            CampusConnect just 2 days before registration closed. Won 2nd place!
-          </p>
+              <div className="border-t-2 border-black pt-4">
+                <p className="font-black uppercase">{item.name}</p>
+                <p className="text-sm font-medium">{item.college}</p>
+              </div>
+            </div>
 
-          <div className="border-t-2 border-black pt-4">
-            <p className="font-black uppercase">Aryan Mehta</p>
-            <p className="text-sm font-medium">VJTI Mumbai, 2nd Year</p>
           </div>
-        </div>
-
-        <div className="bg-white border-4 border-black p-8 shadow-retro">
-          <span className="text-6xl font-black text-[#4CAF50] leading-none block mb-4">
-            "
-          </span>
-
-          <p className="text-lg font-bold mb-6">
-            The anonymous chat helped me make 3 real friends in my first week.
-            It felt way less scary than walking up to strangers.
-          </p>
-
-          <div className="border-t-2 border-black pt-4">
-            <p className="font-black uppercase">Priya Sharma</p>
-            <p className="text-sm font-medium">DTU Delhi, 1st Year</p>
-          </div>
-        </div>
-
-        <div className="bg-white border-4 border-black p-8 shadow-retro">
-          <span className="text-6xl font-black text-[#E05C3A] leading-none block mb-4">
-            "
-          </span>
-
-          <p className="text-lg font-bold mb-6">
-            Found my mentor through the platform. He helped me crack my first
-            internship interview. Couldn't have done it alone.
-          </p>
-
-          <div className="border-t-2 border-black pt-4">
-            <p className="font-black uppercase">Karan Patel</p>
-            <p className="text-sm font-medium">BITS Pilani, 3rd Year</p>
-          </div>
-        </div>
+        ))}
 
       </div>
+
 
       {/* Floating Icons */}
 

@@ -3,15 +3,19 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import http from "http";
-import { connectDB } from "./src/db/db.js";
-import userRoute from "./src/routes/basic.routes.js";
-import { authenticate } from "./src/middlewares/auth.middlewares.js";
-import eventsRoute from "./src/routes/events.routes.js";
+import connectDB from "./src/config/db.js";
+import authRoute from "./src/routes/auth.routes.js";
+import auth  from "./src/middlewares/auth.middlewares.js";
+import eventRoute from "./src/routes/events.routes.js";
 import initSocket from "./src/socket/socket.js";
 import notificationRoute from "./src/routes/notification.routes.js";
+import userRoute from "./src/routes/user.routes.js";
+import { settings } from "cluster";
+
 // import chatRoute from "./src/routes/chat.routes.js";
 
-connectDB();
+
+connectDB()
 
 const app = express();
 const server = http.createServer(app);
@@ -24,10 +28,15 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use("/api/auth", userRoute); //auth---> login,signup,forget
+app.use("/api/auth", authRoute); //auth---> login,signup,forget
 
-app.use("/api/event", authenticate, eventsRoute); //events---> create,update,delete
-app.use("/api/notification", authenticate, notificationRoute); //notification---> send notification, get notifications
+app.use("/api/dashboard/event", eventRoute); //events---> create,update,delete
+app.use("/api/dashboard/notification", notificationRoute); //notification---> send notification, get notifications
+// app.use('api/dashboard/community',communityRoute)
+
+app.use('api/dashboard/user',auth,userRoute)
+// app.use('api/dashboard/',auth,userRoute)
+
 // app.use("/api/chat",authenticate,chatRoute);
 
 initSocket(server);
