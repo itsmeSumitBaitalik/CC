@@ -36,10 +36,6 @@ export default function initSocket(server) {
  
   io.on("connection", (socket) => {
     console.log("🔥 User connected:", socket.user);
-
-
-    
-
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.user?.id);
       socket.leave(userRoom);
