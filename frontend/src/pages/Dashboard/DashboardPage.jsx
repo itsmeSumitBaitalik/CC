@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import StatCard from "../../components/StatCard";
 import SectionHeader from "../../components/SectionHeader";
 import ProfileCard from "./components/ProfileCard";
 import AnnouncementList from "./components/AnnouncementList";
+import { sendFriendRequest } from "../../api/allApis/notification.api.js";
+import { userProfile } from "../../api/allApis/user.api.js";
 
 const stats = [
   { icon: "event", count: "4", label: "Events Joined", bg: "bg-retro-green", iconColor: "text-white" },
@@ -31,24 +34,47 @@ const topMentors = [
 ];
 
 export default function DashboardPage() {
+  const [firstName, setFirstName] = useState("");
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await userProfile();
+
+        // ✅ FIX: correct extraction
+        const user = res.data?.user;
+
+        if (user?.fname) {
+          setFirstName(user.fname);
+        } else {
+          console.log("fname missing in user object");
+        }
+
+      } catch (err) {
+        console.error("Failed to fetch dashboard profile name:", err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
     <>
-      <Topbar subtitle="Dashboard" title="Good Morning, Jackie 👋" />
+      <Topbar subtitle="Dashboard" title={`Good Morning, ${firstName} 👋`} />
 
       <div className="p-5 flex flex-col gap-5">
 
         {/* ── Stats Row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
             <StatCard key={i} {...stat} />
           ))}
         </div>
 
         {/* ── Events + Right Panel ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
 
           {/* Left column: Events + Communities */}
-          <div className="lg:col-span-2 flex flex-col gap-5">
+          <div className="xl:col-span-2 flex flex-col gap-5">
 
             <SectionHeader color="bg-retro-green" title="UPCOMING EVENTS" action="View All →" />
 
@@ -67,7 +93,7 @@ export default function DashboardPage() {
                       ))}
                     </div>
                     <h3 className="retro-title text-lg">{event.title}</h3>
-                    <div className="meta-row mt-1.5">
+                    <div className="meta-row mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
                       <span className="meta-item"><span className="material-symbols-outlined text-sm">location_on</span>{event.location}</span>
                       <span className="meta-item"><span className="material-symbols-outlined text-sm">schedule</span>{event.time}</span>
                     </div>
@@ -82,7 +108,7 @@ export default function DashboardPage() {
             {/* Communities */}
             <div className="flex flex-col gap-3">
               <SectionHeader color="bg-retro-yellow" title="MY COMMUNITIES" action="Explore →" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3">
                 {communities.map((club, i) => (
                   <div key={i} className="retro-card card-hover p-4 flex items-center gap-3">
                     <div className={`retro-icon-box ${club.bg}`}>
@@ -124,7 +150,19 @@ export default function DashboardPage() {
                         ))}
                       </div>
                     </div>
-                    <button className="retro-btn-sm retro-btn-primary flex-shrink-0">+Connect</button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await sendFriendRequest(mentor.id || 'default_id');
+                          alert(`Friend request sent to ${mentor.name}!`);
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className="retro-btn-sm retro-btn-primary flex-shrink-0"
+                    >
+                      +Connect
+                    </button>
                   </div>
                 ))}
               </div>

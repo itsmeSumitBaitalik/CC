@@ -1,15 +1,18 @@
 import Api from "../axios"
 
 //FriendsRequest
-export const responseRequest = (requestId) => {
-    return Api.patch(`/dashboard/notification/responseRequest/${requestId}`)
+
+
+export const sendFriendRequest = (receiverId) => {
+    return Api.post(`/dashboard/notifications/sendFriendRequest/${receiverId}`)
 }
 export const allRequest = (id) => {
-    return Api.patch(`/dashboard/notification/allRequest/${id}`)
+    return Api.get(`/dashboard/notifications/allRequest/${id}`)
 }
-export const getNotifications = (id) => {
-    return Api.patch(`/dashboard/notification/getNotifications/${id}`)
+export const getNotifications = () => {
+    return Api.get(`/dashboard/notifications/getNotifications`)
 }
-export const sendFriendRequest = (receiverId) => {
-    return Api.patch(`/dashboard/notification/sendFriendRequest/${receiverId}`)
+
+export const responseRequest = (requestId,status) => {
+    return Api.patch(`/dashboard/notifications/responseRequest/${requestId}`,{status})
 }

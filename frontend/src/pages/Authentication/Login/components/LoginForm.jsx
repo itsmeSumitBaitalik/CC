@@ -1,19 +1,36 @@
 import { useState } from "react";
+import { forget } from "../../../../api/allApis/auth.api";
 
-const LoginForm = ({ onSubmit }) => {
+const LoginForm = ({ onSubmit, isLoading }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+    const success = await onSubmit?.(email, password);
+    if (success) {
       setIsSuccess(true);
-      onSubmit?.(e);
-      setTimeout(() => setIsSuccess(false), 2000);
-    }, 1200);
+    }
+  };
+
+  const handleForgetPassword = async () => {
+    if (!email) {
+      alert("Please enter your email first to reset your password.");
+      return;
+    }
+    try {
+      await forget(email);
+      alert("OTP sent to your email!");
+    } catch (error) {
+      console.error("Forget password failed:", error);
+      alert("Failed to send reset email.");
+    }
   };
 
   const getButtonContent = () => {
@@ -37,7 +54,7 @@ const LoginForm = ({ onSubmit }) => {
   const inputCls =
     "w-full pl-10 pr-3 py-2.5 border-2 border-black font-display text-sm font-medium " +
     "bg-[#fafafa] text-black outline-none shadow-retro-sm " +
-    "focus:shadow-retro focus:bg-white transition-shadow duration-100";
+    "focus:shadow-retro focus:bg-[#fff9e6] transition-all duration-100";
 
   return (
     <form onSubmit={handleSubmit}>
@@ -48,7 +65,15 @@ const LoginForm = ({ onSubmit }) => {
         </label>
         <div className="relative">
           <span className="input-icon">mail</span>
-          <input type="email" id="email" placeholder="you@college.edu" required className={inputCls} />
+          <input
+            type="email"
+            id="email"
+            placeholder="you@college.edu"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputCls}
+          />
         </div>
       </div>
 
@@ -64,6 +89,8 @@ const LoginForm = ({ onSubmit }) => {
             id="password"
             placeholder="••••••••"
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className={inputCls}
           />
           <button
@@ -85,7 +112,10 @@ const LoginForm = ({ onSubmit }) => {
           />
           Remember me
         </label>
-        <span className="text-[12px] font-bold uppercase tracking-wider text-black underline cursor-pointer">
+        <span
+          onClick={handleForgetPassword}
+          className="text-[12px] font-bold uppercase tracking-wider text-black underline cursor-pointer hover:text-retro-red transition-colors"
+        >
           Forgot password?
         </span>
       </div>

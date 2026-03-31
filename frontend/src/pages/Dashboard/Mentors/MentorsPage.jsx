@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Topbar from "../../components/Topbar";
-import SectionHeader from "../../components/SectionHeader";
+import Topbar from "../../../components/Topbar";
+import SectionHeader from "../../../components/SectionHeader";
 import StarRating from "./components/StarRating";
 import MentorCard from "./components/MentorCard";
 import OnlineCarousel from "./components/OnlineCarousel";

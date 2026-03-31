@@ -1,4 +1,26 @@
+import { useState, useEffect } from "react";
+import { userProfile } from "../../../api/allApis/user.api";
+
 export default function ProfileCard() {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        
+        const res = await userProfile();
+        setProfile(res.data?.user || res.data || null);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const displayName = profile ? `${profile.fname || ''} ${profile.lname || ''}`.trim() : "Jackie Chen";
+  const displayRole = profile?.role || "Student";
+  const displayDept = profile?.department || "Computer Science";
+
   return (
     <div className="retro-card overflow-hidden">
       <div className="bg-retro-yellow border-b-3 border-black px-5 pt-4 pb-8 relative">
@@ -8,14 +30,14 @@ export default function ProfileCard() {
           </div>
         </div>
         <p className="retro-meta">Your Profile</p>
-        <p className="retro-title text-sm">Jackie Chen</p>
+        <p className="retro-title text-sm">{displayName}</p>
       </div>
       <div className="px-5 pb-5 -mt-6">
         <div className="retro-avatar retro-avatar-md bg-white shadow-retro mb-3 relative">
           <span className="material-symbols-outlined text-3xl">person</span>
           <div className="retro-status-dot online pulse"></div>
         </div>
-        <p className="retro-subtitle">2nd Year • Computer Science</p>
+        <p className="retro-subtitle">{displayRole} • {displayDept}</p>
         <p className="text-sm font-medium mt-2 text-black/70 leading-snug">Hackathon enthusiast. Always looking for the next big opportunity.</p>
         <div className="flex flex-wrap gap-1.5 mt-3">
           <span className="retro-badge bg-retro-yellow">GAMING</span>

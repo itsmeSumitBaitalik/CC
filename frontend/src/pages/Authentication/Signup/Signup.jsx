@@ -6,15 +6,8 @@ import AuthLeftPanel from "../shared/components/AuthLeftPanel";
 import SignupForm from "./components/SignupForm";
 import { useState } from "react";
 import { signup } from "../../../api/allApis/auth.api";
+import { TickerData } from "../../../asset/data";
 
-const SIGNUP_TICKER = [
-  "JOIN THE CAMPUS",
-  "EVENTS & XP AWAIT",
-  "FIND YOUR MENTOR",
-  "ANONYMOUS CHAT",
-  "BUILD YOUR NETWORK",
-  "FREE FOR STUDENTS",
-];
 
 const XP_CARDS = [
   { label: "Events", value: "340+", sub: "This Semester" },
@@ -34,17 +27,9 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const { username, email, password } = formData;
+      const { fname, lname, email, password, terms } = formData;
 
-      const res = await signup(username, email, password);
-
-      const token = res.data?.token || res.data?.data?.token;
-
-      if (!token) {
-        throw new Error("Token not found");
-      }
-
-      localStorage.setItem("token", token);
+      const res = await signup(fname, lname, email, password, terms);
 
       console.log("Signup success");
 
@@ -65,7 +50,7 @@ const Signup = () => {
 
   return (
     <div className="auth-bg bg-retro-yellow min-h-screen flex flex-col font-display">
-      <TickerBanner items={SIGNUP_TICKER} />
+      <TickerBanner items={TickerData.signup} />
       <AuthNav linkTo="/login" linkText="Log In" />
 
 

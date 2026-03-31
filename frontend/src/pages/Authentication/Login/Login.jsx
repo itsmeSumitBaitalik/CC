@@ -6,15 +6,8 @@ import AuthFooter from "../shared/components/AuthFooter";
 import AuthNav from "../shared/components/AuthNav";
 import AuthCard from "./components/AuthCard";
 import "../shared/auth.css";
+import { TickerData } from "../../../asset/data";
 
-const LOGIN_TICKER = [
-  "WELCOME BACK",
-  "EVENTS & XP AWAIT",
-  "FIND YOUR MENTOR",
-  "ANONYMOUS CHAT",
-  "BUILD YOUR NETWORK",
-  "CONTINUE YOUR JOURNEY",
-];
 
 const FEATURES = [
   "Discover & register for campus events",
@@ -36,18 +29,14 @@ const Login = () => {
     try {
       const res = await login(email, password);
 
-      const token = res.data?.token || res.data?.data?.token;
-
-      if (!token) {
-        throw new Error("Token not found");
-      }
-
-      localStorage.setItem("token", token);
-
       console.log("Login success");
 
       // redirect
-      window.location.href = "/dashboard";
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1000);
+
+      return true;
 
     } catch (error) {
       console.error(error);
@@ -59,13 +48,13 @@ const Login = () => {
 
   return (
     <div className="auth-bg bg-retro-yellow min-h-screen flex flex-col font-display">
-      <TickerBanner items={LOGIN_TICKER} />
+      <TickerBanner items={TickerData.login} />
       <AuthNav linkTo="/signup" linkText="Create Account" />
 
       <main className="flex-1 flex items-center justify-center px-6 py-12 gap-12 max-md:flex-col max-md:items-center">
         <AuthLeftPanel
           label="Student Platform"
-          title={<>Welcome<br/><span className="hero-accent">Back</span><br/>Student.</>}
+          title={<>Welcome<br /><span className="hero-accent">Back</span><br />Student.</>}
           subtitle="Log in to your campus hub — events, mentors, anonymous chat, and your growing community are waiting."
         >
           <div className="flex flex-col gap-2.5">

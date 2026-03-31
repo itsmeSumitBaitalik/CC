@@ -8,8 +8,8 @@ import About from "./pages/HomePage/About/About.jsx";
 
 import DashboardLayout from "./pages/Dashboard/DashboardLayout.jsx";
 import DashboardPage from "./pages/Dashboard/DashboardPage.jsx";
-import EventsPage from "./pages/Events/EventsPage.jsx";
-import MentorsPage from "./pages/Mentors/MentorsPage.jsx";
+import EventsPage from "./pages/Dashboard/Events/EventsPage.jsx";
+import MentorsPage from "./pages/Dashboard/Mentors/MentorsPage.jsx";
 import SettingPage from "./pages/Setting/SettingPage.jsx";
 import Chatting from "./pages/Chat/Chatting.jsx";
 

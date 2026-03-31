@@ -33,61 +33,63 @@ export default function SettingsDialog({ onClose }) {
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose}></div>
 
       {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-none">
-        <div className="retro-card w-[95vw] max-w-6xl h-[90vh] flex flex-col overflow-hidden pointer-events-auto dialog-anim">
+      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none md:p-6">
+        <div className="w-full h-full border-0 md:border-3 border-black md:retro-card md:w-[95vw] max-w-6xl md:h-[90vh] bg-retro-yellow md:bg-white flex flex-col overflow-hidden pointer-events-auto dialog-anim">
 
-          {/* Top bar */}
-          <div className="flex min-h-0">
+          {/* Top bar & Content Layout */}
+          <div className="flex flex-col md:flex-row flex-1 min-h-0 bg-white">
 
             {/* Left nav */}
-            <div className="w-56 flex-shrink-0 flex flex-col border-r-3 border-black">  
+            <div className="w-full md:w-56 flex-shrink-0 flex flex-col border-b-3 md:border-b-0 md:border-r-3 border-black bg-white">  
               {/* Header — matching img1 reference */}
-              <div className="retro-section-header gap-3 flex-shrink-0">
-                <div className="retro-icon-box-sm bg-black !border-black">
-                  <span className="material-symbols-outlined text-retro-yellow text-base">settings</span>
+              <div className="retro-section-header justify-between flex-shrink-0 border-b-3 border-black md:border-b-0">
+                <div className="flex items-center gap-3">
+                  <div className="retro-icon-box-sm bg-black !border-black">
+                    <span className="material-symbols-outlined text-retro-yellow text-base">settings</span>
+                  </div>
+                  <div>
+                    <p className="retro-title text-sm text-white" style={{ color: "#fff" }}>Settings</p>
+                    <p className="retro-subtitle" style={{ color: "rgba(0,0,0,0.5)" }}>Preferences</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="retro-title text-sm text-white" style={{ color: "#fff" }}>Settings</p>
-                  <p className="retro-subtitle" style={{ color: "rgba(0,0,0,0.5)" }}>Preferences</p>
-                </div>
+                <button onClick={onClose} className="retro-icon-box-sm bg-retro-red hover:bg-black transition-colors cursor-pointer flex-shrink-0">
+                  <span className="material-symbols-outlined text-white text-base">close</span>
+                </button>
               </div>
 
               {/* Nav items */}
-              <div className="flex-1 flex flex-col overflow-y-auto retro-scroll">
-                <p className="retro-meta px-4 pt-3 pb-1 tracking-widest">Settings Menu</p>
-                <nav className="flex flex-col gap-0.5 px-2 pb-2">
+              <div className="flex-none md:flex-1 flex flex-col overflow-x-auto md:overflow-y-auto retro-scroll">
+                <p className="retro-meta px-4 pt-4 mb-2 md:pt-3 md:pb-1 tracking-widest hidden md:block">Settings Menu</p>
+                <nav className="flex flex-row md:flex-col gap-2 md:gap-0.5 px-4 md:px-2 pt-3 pb-3 md:pb-2">
                   {navItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => setActivePanel(item.id)}
-                      className={`snav-item flex items-center gap-2.5 px-3 py-2.5 border-2 border-transparent text-left w-full ${activePanel === item.id ? 'snav-active' : ''}`}
+                      className={`snav-item flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 border-2 border-transparent text-left flex-shrink-0 whitespace-nowrap ${activePanel === item.id ? 'snav-active' : ''}`}
                     >
                       <div className={`retro-icon-box-sm ${activePanel === item.id ? 'bg-black !border-black' : 'bg-white'}`}>
                         <span className={`material-symbols-outlined ${activePanel === item.id ? 'text-retro-yellow' : 'text-black'} text-base`}>{item.icon}</span>
                       </div>
-                      <span className="retro-label">{item.label}</span>
+                      <span className="retro-label uppercase md:capitalize text-xs md:text-sm">{item.label}</span>
                     </button>
                   ))}
                 </nav>
               </div>
 
               {/* Version footer */}
-              <div className="px-4 py-2 border-t-3 border-black">
+              <div className="px-4 py-2 border-t-3 border-black hidden md:block">
                 <p className="retro-meta text-[10px]">CampusConnect v2.1.0</p>
               </div>
             </div>
 
             {/* Right content */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 min-h-0">
               {/* Content header */}
               <div className="retro-section-header justify-between flex-shrink-0">
                 <div>
                   <p className="retro-subtitle">Account</p>
                   <h2 className="retro-title text-lg tracking-tighter">{panelTitles[activePanel]}</h2>
                 </div>
-                <button onClick={onClose} className="retro-icon-box-sm bg-retro-red hover:bg-black transition-colors cursor-pointer">
-                  <span className="material-symbols-outlined text-white text-base">close</span>
-                </button>
               </div>
 
               {/* Action Bar - Shared across all panels */}
@@ -103,21 +105,21 @@ export default function SettingsDialog({ onClose }) {
                 {activePanel === "profile" && (
                   <div className="flex flex-col gap-5 p-6">
                     {/* Profile card */}
-                    <div className="bg-retro-yellow border-3 border-black p-5">
-                      <div className="flex items-center gap-5">
+                    <div className="bg-retro-yellow border-3 border-black p-4 md:p-5">
+                      <div className="flex flex-col md:flex-row items-center md:items-start gap-5 text-center md:text-left">
                         <div className="relative">
                           <div className="avatar-ring"><span className="material-symbols-outlined text-4xl">person</span></div>
                           <button className="absolute -bottom-1 -right-1 retro-icon-box-sm bg-white shadow-retro-sm">
                             <span className="material-symbols-outlined text-xs">edit</span>
                           </button>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                        <div className="flex-1 w-full">
+                          <div className="flex flex-col md:flex-row items-center gap-2 mb-1 justify-center md:justify-start">
                             <h3 className="retro-title text-xl">Jackie Chen</h3>
                             <span className="retro-badge bg-retro-green text-white">Active Member</span>
                           </div>
                           <p className="retro-subtitle">2nd Year • Computer Science • VJTI Mumbai</p>
-                          <div className="mt-3">
+                          <div className="mt-4 md:mt-3 text-left">
                             <div className="flex justify-between mb-1">
                               <span className="retro-label">Campus XP</span>
                               <span className="retro-label">720 / 1000 XP</span>
@@ -137,14 +139,14 @@ export default function SettingsDialog({ onClose }) {
                         <span className="material-symbols-outlined text-retro-yellow text-sm">add_box</span>
                         <span className="retro-label text-white">Your Experience Points</span>
                       </div>
-                      <div className="grid grid-cols-4 divide-x-3 divide-black border-t-3 border-black">
+                      <div className="grid grid-cols-2 md:grid-cols-4 divide-black border-t-3 border-black">
                         {[
                           { val: "+180", label: "Events" },
                           { val: "+240", label: "Communities" },
                           { val: "+180", label: "Mentors" },
                           { val: "+120", label: "Chat" },
                         ].map((xp, i) => (
-                          <div key={i} className="text-center py-4">
+                          <div key={i} className="text-center py-4 border-b-3 md:border-b-0 border-r-3 border-black [&:nth-child(2n)]:border-r-0 md:[&:nth-child(2n)]:border-r-3 md:last:border-r-0">
                             <p className="text-2xl font-black text-black leading-none">{xp.val}</p>
                             <p className="retro-meta mt-1">{xp.label}</p>
                           </div>
