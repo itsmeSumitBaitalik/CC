@@ -107,9 +107,16 @@ const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Alumni'];
 
 // ── Event Info Header ───────────────────────────────────────────────────────
 function EventInfoHeader({ event, onClose }) {
-  const { title, campusName, eventType, date, location, seats } = event;
-  const pct  = Math.round((seats.filled / seats.total) * 100);
-  const left = seats.total - seats.filled;
+  const { title, campusName, eventType, date, location } = event;
+
+  // Support both { seats: { total, filled } } shape and raw backend fields
+  const seatsObj = event.seats && typeof event.seats === 'object' ? event.seats : null;
+  const totalSeats = seatsObj ? seatsObj.total : (event.totalSeats ?? 0);
+  const filledSeats = seatsObj ? seatsObj.filled : (event.registeredCount ?? 0);
+  const hasSeatInfo = totalSeats > 0;
+
+  const pct  = hasSeatInfo ? Math.round((filledSeats / totalSeats) * 100) : 0;
+  const left = hasSeatInfo ? totalSeats - filledSeats : 0;
   const badgeStyle = getBadgeStyle(eventType);
   const barColor   = getSeatBarColor(pct);
   const seatStatus = getSeatStatus(pct, left);
@@ -161,25 +168,27 @@ function EventInfoHeader({ event, onClose }) {
         </div>
       </div>
 
-      {/* Seat availability bar */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-black uppercase">Seats Available</span>
-          <span className="text-xs font-black">{seats.filled} / {seats.total} filled</span>
+      {/* Seat availability bar — only shown when there is seat info */}
+      {hasSeatInfo && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-black uppercase">Seats Available</span>
+            <span className="text-xs font-black">{filledSeats} / {totalSeats} filled</span>
+          </div>
+          <div className="h-4 bg-white border-3 border-black w-full relative">
+            <div
+              className="h-full border-r-3 border-black transition-all"
+              style={{ width: `${pct}%`, background: barColor }}
+            />
+            <span className="absolute right-2 top-0 h-full flex items-center text-xs font-black">
+              {pct}%
+            </span>
+          </div>
+          <p className={`text-xs font-bold uppercase mt-1 ${seatStatus.urgent ? 'text-retro-red' : 'text-black/50'}`}>
+            {seatStatus.text}
+          </p>
         </div>
-        <div className="h-4 bg-white border-3 border-black w-full relative">
-          <div
-            className="h-full border-r-3 border-black transition-all"
-            style={{ width: `${pct}%`, background: barColor }}
-          />
-          <span className="absolute right-2 top-0 h-full flex items-center text-xs font-black">
-            {pct}%
-          </span>
-        </div>
-        <p className={`text-xs font-bold uppercase mt-1 ${seatStatus.urgent ? 'text-retro-red' : 'text-black/50'}`}>
-          {seatStatus.text}
-        </p>
-      </div>
+      )}
     </div>
   );
 }
@@ -251,7 +260,7 @@ function StateFull() {
 }
 
 // ── Registration Form ───────────────────────────────────────────────────────
-function StateForm({ onSubmit }) {
+function StateForm({ onSubmit, isLoading = false, errorMsg = null }) {
   const [form, setForm]       = useState({ name: '', email: '', dept: '', year: '', team: '' });
   const [terms, setTerms]     = useState(false);
   const [shake, setShake]     = useState(false);
@@ -359,13 +368,30 @@ function StateForm({ onSubmit }) {
         </span>
       </label>
 
+      {/* API error */}
+      {errorMsg && (
+        <div className="bg-retro-red border-3 border-black p-3 text-white font-black uppercase text-xs">
+          {errorMsg}
+        </div>
+      )}
+
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        className="retro-btn retro-btn-dark w-full py-4 text-base shadow-retro flex items-center justify-center gap-2 relative overflow-hidden"
+        disabled={isLoading}
+        className="retro-btn retro-btn-dark w-full py-4 text-base shadow-retro flex items-center justify-center gap-2 relative overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        <span className="material-symbols-outlined text-xl">how_to_reg</span>
-        Confirm Registration
+        {isLoading ? (
+          <>
+            <span className="material-symbols-outlined text-xl animate-spin">progress_activity</span>
+            Registering...
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined text-xl">how_to_reg</span>
+            Confirm Registration
+          </>
+        )}
       </button>
 
       <p className="text-center text-xs font-bold text-black/30 uppercase -mt-2">
@@ -475,9 +501,11 @@ function ViewConfirmation({ event, registeredName, onClose }) {
  *  { _id, title, campusName, eventType, date, location,
  *    seats: { total, filled } }
  */
-export default function RegistrationModal({ isOpen, onClose, event, status = 'registered' }) {
+export default function RegistrationModal({ isOpen, onClose, event, status = 'registered', onRegister, onUnregister }) {
   const [view, setView]               = useState('form');       // 'form' | 'confirmation'
   const [registeredName, setName]     = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [regError, setRegError]           = useState(null);
   const dialogRef                     = useRef(null);
 
   // Inject keyframe styles once
@@ -494,6 +522,8 @@ export default function RegistrationModal({ isOpen, onClose, event, status = 're
     if (isOpen) {
       setView('form');
       setName('');
+      setIsRegistering(false);
+      setRegError(null);
       // re-trigger dialog animation
       if (dialogRef.current) {
         dialogRef.current.classList.remove('reg-dialog-in');
@@ -507,27 +537,43 @@ export default function RegistrationModal({ isOpen, onClose, event, status = 're
     if (e.target === e.currentTarget) onClose();
   }, [onClose]);
 
-  const handleFormSubmit = useCallback((formData) => {
-    // TODO: replace with real API call
-    // await fetch(`/api/dashboard/events/${event._id}/register`, {
-    //   method: 'POST', credentials: 'include',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(formData),
-    // });
-    setName(formData.name);
-    setView('confirmation');
-  }, []);
+  const handleFormSubmit = useCallback(async (formData) => {
+    if (!onRegister) {
+      // Fallback: no API provided — just show confirmation
+      setName(formData.name);
+      setView('confirmation');
+      return;
+    }
+    setIsRegistering(true);
+    setRegError(null);
+    try {
+      await onRegister(event._id || event.id);
+      setName(formData.name);
+      setView('confirmation');
+    } catch (err) {
+      setRegError(err?.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsRegistering(false);
+    }
+  }, [onRegister, event]);
 
-  const handleCancelRegistration = useCallback(() => {
-    // TODO: await fetch(`/api/dashboard/events/${event._id}/register`, { method: 'DELETE', credentials: 'include' });
+  const handleCancelRegistration = useCallback(async () => {
+    if (onUnregister) {
+      try {
+        await onUnregister(event._id || event.id);
+      } catch (err) {
+        console.error('Unregister failed:', err);
+      }
+    }
     onClose();
-  }, [onClose]);
+  }, [onUnregister, event, onClose]);
 
   if (!isOpen || !event) return null;
 
-  // Full-seat override for 'full' status
+  // Full-seat override for 'full' status (works with raw or mapped event shapes)
+  const _total = event.totalSeats ?? (event.seats && typeof event.seats === 'object' ? event.seats.total : 0);
   const displayEvent = status === 'full'
-    ? { ...event, seats: { total: event.seats.total, filled: event.seats.total } }
+    ? { ...event, totalSeats: _total, registeredCount: _total, seats: { total: _total, filled: _total } }
     : event;
 
   return (
@@ -553,7 +599,7 @@ export default function RegistrationModal({ isOpen, onClose, event, status = 're
               <StateFull />
             )}
             {status === 'default' && (
-              <StateForm onSubmit={handleFormSubmit} />
+              <StateForm onSubmit={handleFormSubmit} isLoading={isRegistering} errorMsg={regError} />
             )}
           </div>
         ) : (

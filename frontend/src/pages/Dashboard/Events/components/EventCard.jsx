@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { getEventStyle } from '../eventConfig';
 import RegistrationModal from './RegistrationModal';
 
-export default function EventCard({ event, onEdit, onDelete }) {
+export default function EventCard({ event, onEdit, onDelete, onRegister, onUnregister }) {
   const { type, date, title, desc, loc, time, seats, seatPct, seatLabel, registered } = event;
   const style = getEventStyle(type);
   const { icon, headerBg, badgeColor, iconBg: iconBgColor } = style;
@@ -22,6 +22,8 @@ export default function EventCard({ event, onEdit, onDelete }) {
       onClose={() => setOpen(false)}
       event={event}
       status={status}
+      onRegister={onRegister}
+      onUnregister={onUnregister}
     />,
     document.body
   );
