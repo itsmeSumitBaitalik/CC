@@ -8,8 +8,11 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import connectDB from './src/config/db.js';
-// import initSocket from './src/socket/index.js';
+ 
 import auth from './src/middlewares/auth.middlewares.js';
+
+// 👇 import socket initializer
+import initSocket from '../backend/src/socket/socket.js';
 
 // ── Route imports ──────────────────────────────────
 import authRoutes from './src/routes/auth.routes.js';
@@ -30,7 +33,7 @@ const PORT = process.env.PORT || 5000;
 //   cors: { origin: process.env.CLIENT_URL || '*', credentials: true },
 //   pingTimeout: 60000,
 // });
-// initSocket(io);
+ initSocket(server);
 
 // ── Middleware ─────────────────────────────────────
 app.use(helmet());
