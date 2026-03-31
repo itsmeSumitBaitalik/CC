@@ -8,10 +8,6 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
-
     const user = await User.findOne({ email });
 
     if (!user || !user.password) {
@@ -25,15 +21,18 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    const token = generateToken(user._id, user.email, `${user.fname} ${user.lname}`);
+    const token = generateToken(
+      user._id,
+      user.email,
+      `${user.fname} ${user.lname}`,
+    );
 
     res.cookie("token", token, {
-      httpOnly: true,      // 🔒 prevents JS access
-      secure: false,       // true in production (HTTPS)
-      sameSite: "Lax",     // or "Strict"
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
-
     });
 
     return res.status(200).json({
@@ -48,13 +47,10 @@ export const login = async (req, res) => {
 
 export const signup = async (req, res) => {
   const { fname, lname, email, password, terms } = req.body;
-  
-  try {
-    if (!fname || !lname || !email || !password || terms === undefined) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
 
+  try {
     const existingEmail = await User.findOne({ email });
+
     if (existingEmail) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -69,15 +65,18 @@ export const signup = async (req, res) => {
       terms,
     });
 
-    const token = generateToken(user._id, user.email, `${user.fname} ${user.lname}`);
+    const token = generateToken(
+      user._id,
+      user.email,
+      `${user.fname} ${user.lname}`,
+    );
 
     res.cookie("token", token, {
-      httpOnly: true,      // 🔒 prevents JS access
-      secure: false,       // true in production (HTTPS)
-      sameSite: "Lax",     // or "Strict"
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
-
     });
 
     return res.status(201).json({ message: "user created successfully", user });
@@ -120,7 +119,6 @@ export const logout = async (req, res) => {
     return res.status(200).json({
       message: "Logout successful",
     });
-
   } catch (error) {
     return res.status(500).json({
       message: error.message,
