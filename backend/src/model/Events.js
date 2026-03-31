@@ -5,7 +5,7 @@ const eventSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: false,
+      required: true,
     },
     title: {
       type: String,
@@ -24,6 +24,12 @@ const eventSchema = new mongoose.Schema(
     date: {
       type: Date,
       required: [true, "Event date is required"],
+    },
+
+    time: {
+      type: String,
+      required: [true, "Event time is required"],
+      trim: true,
     },
 
     location: {
@@ -58,6 +64,15 @@ const eventSchema = new mongoose.Schema(
         "Sports",
         "Other",
       ],
+    },
+    status: {
+      type: String,
+      enum: ["upcoming", "ongoing", "completed"],
+      default: "upcoming",
+    },
+    totalSeats: {
+      type: Number,
+      default: 0, // 0 for unlimited or as specified
     },
   },
   {

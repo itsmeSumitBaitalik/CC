@@ -11,7 +11,7 @@ export function generateToken(id, email, username){
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES || "15m",
+      expiresIn: process.env.JWT_EXPIRES || "24h",
       issuer: "my-api",
     },
   );

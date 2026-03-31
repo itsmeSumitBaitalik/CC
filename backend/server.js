@@ -1,46 +1,85 @@
-import "dotenv/config";
+import 'dotenv/config';
+import express from 'express';
+import http from 'http';
+// import { Server } from 'socket.io';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
-import express from "express";
-import cors from "cors";
-import http from "http";
-import connectDB from "./src/config/db.js";
-import authRoute from "./src/routes/auth.routes.js";
-import auth  from "./src/middlewares/auth.middlewares.js";
-import eventRoute from "./src/routes/events.routes.js";
-import initSocket from "./src/socket/socket.js";
-import notificationRoute from "./src/routes/notification.routes.js";
-import userRoute from "./src/routes/user.routes.js";
-import { settings } from "cluster";
+import connectDB from './src/config/db.js';
+// import initSocket from './src/socket/index.js';
+import auth from './src/middlewares/auth.middlewares.js';
 
-// import chatRoute from "./src/routes/chat.routes.js";
-
-
-connectDB()
+// ── Route imports ──────────────────────────────────
+import authRoutes from './src/routes/auth.routes.js';
+import userRoutes from './src/routes/user.routes.js';
+import eventRoutes from './src/routes/events.routes.js';
+import notificationRoute from './src/routes/notification.routes.js';
+import mentorRoutes from './src/routes/mentor.routes.js';
+import communityRoutes from './src/routes/community.routes.js';
+// import chatRoutes      from './src/routes/chat.route.js';
+// import xpRoutes        from './src/routes/xp.routes.js';
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
-app.use(cors("*"));
-app.use(express.json());
+// ── Socket.IO ──────────────────────────────────────
+// const io = new Server(server, {
+//   cors: { origin: process.env.CLIENT_URL || '*', credentials: true },
+//   pingTimeout: 60000,
+// });
+// initSocket(io);
 
-app.get("/", (req, res) => {
-  res.send("API is running...");
+// ── Middleware ─────────────────────────────────────
+app.use(helmet());
+app.use(morgan('dev'));
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,                  // required for cookies
+}));
+app.use(cookieParser());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// ── Health check ───────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', project: 'CampusConnect' });
 });
 
-app.use("/api/auth", authRoute); //auth---> login,signup,forget
+// ── Public routes ──────────────────────────────────
+app.use('/api/auth', authRoutes);
 
-app.use("/api/dashboard/event", eventRoute); //events---> create,update,delete
-app.use("/api/dashboard/notification", notificationRoute); //notification---> send notification, get notifications
-// app.use('api/dashboard/community',communityRoute)
+// ── Protected routes (auth applied at router level) ──
+app.use('/api/dashboard/events', auth, eventRoutes);
+app.use('/api/dashboard/users', auth, userRoutes);
+app.use('/api/dashboard/notifications', auth, notificationRoute);
+app.use('/api/dashboard/mentors', auth, mentorRoutes);
+app.use('/api/dashboard/communities', auth, communityRoutes);
+// app.use('/api/dashboard/chat',         auth, chatRoutes);
+// app.use('/api/dashboard/xp',           auth, xpRoutes);
 
-app.use('api/dashboard/user',auth,userRoute)
-// app.use('api/dashboard/',auth,userRoute)
+// ── 404 ────────────────────────────────────────────
+app.use((_req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
+});
 
-// app.use("/api/chat",authenticate,chatRoute);
+// ── Global error handler ───────────────────────────
+app.use((err, _req, res, _next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+  });
+});
 
-initSocket(server);
-
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// ── Start ──────────────────────────────────────────
+connectDB().then(() => {
+  server.listen(PORT, () => {
+    console.log(`🚀 CampusConnect running on http://localhost:${PORT}`);
+  });
+}).catch((err) => {
+  console.error('❌ MongoDB connection failed:', err.message);
+  process.exit(1);
 });

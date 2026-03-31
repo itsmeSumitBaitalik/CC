@@ -1,12 +1,28 @@
 import express from "express";
-import { createEvent,updateEvent,deleteEvent } from "../controllers/event.controller.js";
+import {
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getAllEvents,
+  getEventById,
+  registerForEvent,
+  cancelRegistration,
+} from "../controllers/event.controller.js";
+import { restrictTo, adminOnly } from "../middlewares/auth.middlewares.js";
 
 const eventRoute = express.Router();
 
-eventRoute.post("/create", createEvent);
-eventRoute.put("/update/:id", updateEvent);
-eventRoute.delete("/delete/:id", deleteEvent);
+// ── Read (any logged in user) ──────────────────────
+eventRoute.get("/", getAllEvents);
+eventRoute.get("/myevent/:id", getEventById);
 
+// ── Write (mentor + admin only) ────────────────────
+eventRoute.post("/create", restrictTo("mentor", "admin"), createEvent);
+eventRoute.put("/update/:id", restrictTo("mentor", "admin"), updateEvent);
+eventRoute.delete("/delete/:id", adminOnly, deleteEvent);
 
-// const eventsRoute = eventRoute;
+// ── Registration (any logged in user) ─────────────
+eventRoute.post("/register/:id", registerForEvent);
+eventRoute.delete("/unregister/:id", cancelRegistration);
+
 export default eventRoute;

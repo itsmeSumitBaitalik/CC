@@ -9,7 +9,7 @@ const notificationSchema = new mongoose.Schema(
       enum: ["friend_request", "message", "like"],
       required: true,
     },
-    referenceId: { type: mongoose.Schema.Types.ObjectId }, // friendRequestId
+    referenceId: { type: mongoose.Schema.Types.ObjectId, ref: "FriendsRequest" }, // friendRequestId
     message: {
       type: String,
     },

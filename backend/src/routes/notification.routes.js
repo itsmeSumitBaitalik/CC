@@ -4,8 +4,8 @@ import { sendFriendRequest,getNotifications,responseRequest,getRequest } from ".
 const notificationRoute = express.Router();
 
 notificationRoute.post("/sendFriendRequest/:receiverId",sendFriendRequest);
-notificationRoute.get("/getNotifications/:id", getNotifications);
-notificationRoute.get("/allRequest/:id",getRequest);
+notificationRoute.get("/allRequest/",getRequest);
+notificationRoute.get("/getNotifications", getNotifications);
 notificationRoute.patch("/responseRequest/:requestId",responseRequest); //accept or reject friend 
 
 export default notificationRoute;

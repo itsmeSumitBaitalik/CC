@@ -1,11 +1,13 @@
-import FriendsRequest from "../model/Friends.js";
+import mongoose from "mongoose";
+import FriendsRequest from "../model/FriendsRequest.js";
 import Notification from "../model/Notification.js";
+import User from "../model/User.js";
 
 //Notification controller
-export const createNotification = async (userId, type, referenceId,message) => {
+export const createNotification = async (userId, type, referenceId, message) => {
   try {
     await Notification.create({
-      user: userId,
+      user: new mongoose.Types.ObjectId(userId),
       type,
       referenceId,
       message
@@ -16,22 +18,31 @@ export const createNotification = async (userId, type, referenceId,message) => {
 };
 
 export const getNotifications = async (req, res) => {
-  const userId = req.user.id;
-
   try {
-    if (!userId) {
-      return res.status(400).json({ message: "Missing user ID" });
-    }
-    const notifications = await Notification.find({ user: userId }).sort({
-      createdAt: -1,
+    const userId = req.user.id;
+
+    const notifications = await Notification.find({ 
+      user: userId,
+      isRead: { $ne: true } // Only fetch unread notifications
+    })
+      .populate({ 
+        path: 'referenceId', 
+        populate: { path: 'sender', select: 'fname lname email' } 
+      })
+      .sort({ createdAt: -1 });
+
+    // Filter out notifications where the friend request is no longer pending
+    const validNotifications = notifications.filter(notification => {
+      if (notification.type === 'friend_request' && notification.referenceId) {
+        return notification.referenceId.status === 'pending';
+      }
+      return true; // Keep other notification types
     });
 
-    if(!notifications){
-      return res.status(400).json({message:"No Notifcation"})
-    }
-    res.status(200).json({ notifications });
+    return res.status(200).json({ notifications: validNotifications });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -73,14 +84,12 @@ export const sendFriendRequest = async (req, res) => {
     });
 
     // 3️⃣ Create Notification (stored only)
-    // console.log(friendRequest.id)
-    await createNotification(receiverId, "friend_request", friendRequest.id); //use "_id" if "id" not works
+    await createNotification(receiverId, "friend_request", friendRequest.id);
 
     res.status(201).json({
       success: true,
       message: "Friend request sent",
       senderId
-      // userid: user.id,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -88,29 +97,89 @@ export const sendFriendRequest = async (req, res) => {
 };
 
 export const responseRequest = async (req, res) => {
-  const userId = req.user.id;
-  const { status } = req.body;
+  try {
+    const userId = req.user.id;
+    let { status } = req.body;
+    let requestId = req.params.requestId;
 
-  const request = await FriendsRequest.findById(req.params.requestId);
+    if (status) status = status.toLowerCase();
 
-  if (!request) {
-    res.status(404).json({ message: "request not found" });
+    if (!["accepted", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status. Use 'accepted' or 'rejected'." });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+      return res.status(400).json({ message: "Invalid Request ID format" });
+    }
+
+    // 1️⃣ Find the request (check if ID is FriendRequest or Notification)
+    let request = await FriendsRequest.findById(requestId);
+
+    if (!request) {
+      // If not found in FriendsRequest, maybe it's a Notification ID
+      const notification = await Notification.findById(requestId);
+      if (notification && notification.type === "friend_request") {
+        requestId = notification.referenceId;
+        request = await FriendsRequest.findById(requestId);
+      }
+    }
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // 2️⃣ Authorization & Status check
+    if (request.receiver.toString() !== userId) {
+      return res.status(403).json({ message: "Not Authorized" });
+    }
+
+    if (request.status !== "pending") {
+      return res.status(400).json({ message: "Request already responded" });
+    }
+
+    // 3️⃣ Update request status
+    request.status = status;
+    await request.save();
+
+    // 4️⃣ Mark the notification as read/handled
+    await Notification.updateMany(
+      { 
+        user: userId,
+        type: "friend_request",
+        referenceId: request._id
+      },
+      { 
+        isRead: true 
+      }
+    );
+
+    // 5️⃣ If accepted, update both users' friend lists
+    if (status === "accepted") {
+      await User.findByIdAndUpdate(request.sender, {
+        $addToSet: { friends: request.receiver },
+      });
+      await User.findByIdAndUpdate(request.receiver, {
+        $addToSet: { friends: request.sender },
+      });
+    }
+
+    // 6️⃣ Notify the sender
+    await createNotification(
+      request.sender,
+      "friend_request_response",
+      request._id,
+      `Your friend request was ${status}`
+    );
+
+    res.json({
+      success: true,
+      message: `Friend request ${status}`,
+    });
+
+  } catch (error) {
+    console.error("Error in responseRequest:", error);
+    res.status(500).json({ error: error.message });
   }
-
-  if (request.receiver.toString() !== userId) {
-    return res.status(403).json({ message: "Not Authorized" });
-  }
-
-  if (request.status !== "pending") {
-    return res.status(404).json({ Message: "Request already responded" });
-  }
-
-  request.status = status;
-  await request.save();
-  await createNotification(userId,"friend_request",request.id,status)
-  res.json({
-    message: `Friend request ${status}`,
-  });
 };
 
 export const getRequest = async (req, res) => {
@@ -119,7 +188,7 @@ export const getRequest = async (req, res) => {
 
     const request = await FriendsRequest.find({
       receiver: userId,
-      // status: "pending",
+      status: "pending",
     }).populate("sender", "username email");
 
     res.json(request);

@@ -25,45 +25,65 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    const token = generateToken(user.id, user.email, user.username);
+    const token = generateToken(user._id, user.email, `${user.fname} ${user.lname}`);
+
+    res.cookie("token", token, {
+      httpOnly: true,      // 🔒 prevents JS access
+      secure: false,       // true in production (HTTPS)
+      sameSite: "Lax",     // or "Strict"
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+
+    });
 
     return res.status(200).json({
       message: "Login successful",
-      token,
-      user: user.id,
+      user,
     });
   } catch (error) {
-    // console.error("LOGIN ERROR:", error);
+    console.error("LOGIN ERROR:", error);
     return res.status(500).json({ message: error.message });
   }
 };
 
 export const signup = async (req, res) => {
-  const { username, email, password } = req.body;
-  console.log("Signup request received with data:", { username, email });
+  const { fname, lname, email, password, terms } = req.body;
+  
   try {
-    if (!username || !email || !password) {
+    if (!fname || !lname || !email || !password || terms === undefined) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    const salt = 10;
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const user = await User.create({
-      username,
+      fname,
+      lname,
       email,
       password: hashedPassword,
+      terms,
     });
 
-    const token = generateToken(user._id, user.email);
+    const token = generateToken(user._id, user.email, `${user.fname} ${user.lname}`);
 
-    res.status(201).json({ message: "user created successfully", user, token });
+    res.cookie("token", token, {
+      httpOnly: true,      // 🔒 prevents JS access
+      secure: false,       // true in production (HTTPS)
+      sameSite: "Lax",     // or "Strict"
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+
+    });
+
+    return res.status(201).json({ message: "user created successfully", user });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("SIGNUP ERROR FULL:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -79,6 +99,8 @@ export const forgetPassword = async (req, res) => {
       await sendEmail(user.email, "Password Reset OTP", `Your OTP is: ${otp}`);
 
       res.json({ message: "OTP sent successfully" });
+    } else {
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     console.error("FORGET ERROR:", error);
@@ -86,26 +108,22 @@ export const forgetPassword = async (req, res) => {
   }
 };
 
-//users profile
-export const usersProfile = async (req, res) => {
-  const { username, skills, interest } = req.body;
-
+export const logout = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { username, skills, interest },
-      { returnDocument: "after", runValidators: true },
-    ).select("-password");
-
-    if (!user) {
-      res.status(404).json({ message: "user not found" });
-    }
-    res.json({
-      message: "User updated successfully",
-      user,
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: false, // true in production
+      path: "/",
     });
+
+    return res.status(200).json({
+      message: "Logout successful",
+    });
+
   } catch (error) {
-    // console.error("profile error:", error);
-    res.status(500).json({ messsage: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
