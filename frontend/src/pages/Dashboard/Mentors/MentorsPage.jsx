@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Topbar from "../../../components/Topbar";
 import SectionHeader from "../../../components/SectionHeader";
 import StarRating from "./components/StarRating";
 import MentorCard from "./components/MentorCard";
 import OnlineCarousel from "./components/OnlineCarousel";
 import MentorForm from "./components/MentorForm";
+import { useTopbar } from "../SidebarContext";
 
 const allMentors = [
   { name: "Rahul Verma", dept: "4th Year • CS", skills: ["React", "Node.js", "DSA"], category: "tech", rating: 5.0, ratingCount: 24, bio: "Helping juniors crack their first internship through React, DSA and interview prep.", online: true, mine: true, color: "bg-retro-green", students: 18, sessions: 42, withYou: "3mo" },
@@ -47,9 +47,10 @@ export default function MentorsPage() {
 
   const myMentors = allMentors.filter(m => m.mine);
 
+  useTopbar({ subtitle: "Campus Network", title: "Mentors 🎓" });
+
   return (
     <>
-      <Topbar subtitle="Campus Network" title="Mentors 🎓" />
       <div className="p-5 flex flex-col gap-6">
 
         {/* Hero Stats */}

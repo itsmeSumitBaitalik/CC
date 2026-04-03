@@ -1,36 +1,11 @@
-// ── Chatting.jsx ──────────────────────────────────────────────────────────────
-// Main Anonymous Chat page.
-// Manages state and transitions: Lobby → Finding → AnonChat ↔ FriendChat.
-//
-// State design (mirroring the HTML reference exactly):
-//   • anonState   – persistent anon chat: connected, name, interests, messages[]
-//   • friendMsgs  – per-friend message history: { [name]: message[] }
-//   • currentView – 'lobby' | 'finding' | 'anon' | 'friend'
-//   • activeFriend – name of the friend whose chat is open, or null
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {  useEffect, useRef, useState } from "react";
 import ChatSidebar  from "./components/ChatSidebar";
 import LobbyView    from "./components/LobbyView";
 import FindingView  from "./components/FindingView";
 import ChatView     from "./components/ChatView";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const ANON_NAMES = [
-    "@Anon[Mumbai]", "@Anon[Pune]", "@Anon[Delhi]",
-    "@Anon[Blr]",    "@Anon[Hyd]", "@Anon[Chennai]",
-];
-
-const FAKE_MESSAGES = [
-    "Hey! How's it going?",
-    "Did you see the new hackathon announcement?",
-    "Which dept are you from?",
-    "I love this anonymous chat idea lol",
-    "Are you participating in the cultural fest?",
-    "What's your major?",
-    "Have you been to any events this semester?",
-    "This platform is actually pretty cool ngl",
-];
+import socket from "../../lib/socket"; // ← real socket instance
+import Topbar from "../../components/Topbar";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,10 +16,6 @@ function nowTime() {
         ":" +
         d.getMinutes().toString().padStart(2, "0")
     );
-}
-
-function randomFrom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
 }
 
 // ── Chatting ──────────────────────────────────────────────────────────────────
@@ -60,26 +31,143 @@ export default function Chatting() {
     const [selectedGender,    setSelectedGender]    = useState("both");
 
     // ── Anon chat state ───────────────────────────────────────────────────────
-    const [anonConnected,  setAnonConnected]  = useState(false);
-    const [anonName,       setAnonName]       = useState("");
-    const [anonInterests,  setAnonInterests]  = useState("");
-    const [anonMessages,   setAnonMessages]   = useState([]);
-    const [anonFriendAdded,setAnonFriendAdded]= useState(false);
+    const [anonConnected,   setAnonConnected]   = useState(false);
+    const [anonName,        setAnonName]        = useState("");
+    const [myHandle,        setMyHandle]        = useState("");
+    const [anonInterests,   setAnonInterests]   = useState("");
+    const [anonMessages,    setAnonMessages]    = useState([]);
+    const [anonFriendAdded, setAnonFriendAdded] = useState(false);
 
     // ── Sidebar current-chat label ────────────────────────────────────────────
     const [currentChatLabel, setCurrentChatLabel] = useState("Anonymous Match");
     const [currentChatSub,   setCurrentChatSub]   = useState("Not connected");
 
     // ── Friend chat state ─────────────────────────────────────────────────────
-    // friendMsgs: { [friendName]: message[] }
-    const [friendMsgs,     setFriendMsgs]     = useState({});
-    const [activeFriend,   setActiveFriend]   = useState(null); // null = anon/lobby active
+    const [friendMsgs,   setFriendMsgs]   = useState({});
+    const [activeFriend, setActiveFriend] = useState(null);
 
-    // ── Timer ref ─────────────────────────────────────────────────────────────
     const findTimer = useRef(null);
 
-    // Cleanup timers on unmount
-    useEffect(() => () => clearTimeout(findTimer.current), []);
+    // ═════════════════════════════════════════════════════════════════════════
+    // Socket setup — connect once on mount, cleanup on unmount
+    // ═════════════════════════════════════════════════════════════════════════
+
+    useEffect(() => {
+        // ── anon:waiting ─────────────────────────────────────────────────────
+        socket.on("anon:waiting", () => {
+            setCurrentView("finding");
+        });
+
+        // ── anon:matched ─────────────────────────────────────────────────────
+        socket.on("anon:matched", ({ partnerHandle, myHandle, interests }) => {
+            const interestLabel = interests?.length
+                ? interests.join(", ")
+                : "General";
+
+            const systemMsg = {
+                type: "system",
+                text: `You are now chatting with ${partnerHandle}. Say hi! 👋`,
+            };
+
+            setAnonConnected(true);
+            setAnonName(partnerHandle);
+            setMyHandle(myHandle);
+            setAnonInterests(interestLabel);
+            setAnonMessages([systemMsg]);
+            setAnonFriendAdded(false);
+            setCurrentChatLabel(partnerHandle);
+            setCurrentChatSub(interestLabel);
+            setActiveFriend(null);
+            setCurrentView("anon");
+        });
+
+        // ── anon:message (incoming from partner) ─────────────────────────────
+        socket.on("anon:message", ({ content, from, timestamp }) => {
+            setAnonMessages((prev) => [
+                ...prev,
+                { type: "them", text: content, time: nowTime() },
+            ]);
+        });
+
+        // ── anon:message:sent (echo back to sender) ───────────────────────────
+        socket.on("anon:message:sent", ({ content }) => {
+            setAnonMessages((prev) => [
+                ...prev,
+                { type: "me", text: content, time: nowTime() },
+            ]);
+        });
+
+        // ── anon:partner-left ─────────────────────────────────────────────────
+        socket.on("anon:partner-left", ({ message }) => {
+            setAnonMessages((prev) => [
+                ...prev,
+                { type: "system", text: message || "Your partner has left." },
+            ]);
+            setAnonConnected(false);
+            setCurrentChatLabel("Anonymous Match");
+            setCurrentChatSub("Not connected");
+        });
+
+        // ── anon:ended ────────────────────────────────────────────────────────
+        socket.on("anon:ended", () => {
+            setAnonConnected(false);
+            setAnonMessages([]);
+            setCurrentChatLabel("Anonymous Match");
+            setCurrentChatSub("Not connected");
+            setActiveFriend(null);
+            setCurrentView("lobby");
+        });
+
+        // ── anon:friend-request:sent ──────────────────────────────────────────
+        socket.on("anon:friend-request:sent", ({ success, message }) => {
+            if (success) {
+                setAnonFriendAdded(true);
+                setAnonMessages((prev) => [
+                    ...prev,
+                    { type: "system", text: "Friend request sent! 🎉" },
+                ]);
+            }
+        });
+
+        // ── anon:error ────────────────────────────────────────────────────────
+        socket.on("anon:error", ({ message }) => {
+            setAnonMessages((prev) => [
+                ...prev,
+                { type: "system", text: `Error: ${message}` },
+            ]);
+        });
+
+        // ── dm:message ────────────────────────────────────────────────────────
+        socket.on("dm:message", (msg) => {
+            const friendId = msg.sender._id;
+            const friendName = msg.sender.username;
+            setFriendMsgs((prev) => ({
+                ...prev,
+                [friendName]: [
+                    ...(prev[friendName] || []),
+                    {
+                        type: "them",
+                        text: msg.content,
+                        time: nowTime(),
+                    },
+                ],
+            }));
+        });
+
+        // cleanup listeners on unmount (but don't disconnect socket)
+        return () => {
+            socket.off("anon:waiting");
+            socket.off("anon:matched");
+            socket.off("anon:message");
+            socket.off("anon:message:sent");
+            socket.off("anon:partner-left");
+            socket.off("anon:ended");
+            socket.off("anon:friend-request:sent");
+            socket.off("anon:error");
+            socket.off("dm:message");
+            clearTimeout(findTimer.current);
+        };
+    }, []);
 
     // ═════════════════════════════════════════════════════════════════════════
     // Lobby handlers
@@ -92,20 +180,19 @@ export default function Chatting() {
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // Anonymous chat flow  (Lobby → Finding → AnonChat)
+    // Anonymous chat flow
     // ═════════════════════════════════════════════════════════════════════════
 
     function startAnonymousChat() {
         setCurrentView("finding");
         setActiveFriend(null);
-        const delay = 2000 + Math.random() * 2000;
-        findTimer.current = setTimeout(connectToAnon, delay);
+        // emit to backend — backend will respond with anon:waiting or anon:matched
+        socket.emit("anon:join", { interests: selectedInterests });
     }
 
     function cancelFind() {
-        clearTimeout(findTimer.current);
+        socket.emit("anon:leave");
         if (anonConnected) {
-            // Go back to existing anon chat
             setActiveFriend(null);
             setCurrentView("anon");
         } else {
@@ -114,38 +201,6 @@ export default function Chatting() {
         }
     }
 
-    const connectToAnon = useCallback(() => {
-        const name      = randomFrom(ANON_NAMES);
-        const interests = selectedInterests.length
-            ? selectedInterests.slice(0, 2).join(", ")
-            : "General";
-
-        const systemMsg = {
-            type: "system",
-            text: `You are now chatting with ${name}. Say hi! 👋`,
-        };
-
-        setAnonConnected(true);
-        setAnonName(name);
-        setAnonInterests(interests);
-        setAnonMessages([systemMsg]);
-        setAnonFriendAdded(false);
-        setCurrentChatLabel(name);
-        setCurrentChatSub(interests);
-        setActiveFriend(null);
-        setCurrentView("anon");
-
-        // Simulate their first message
-        findTimer.current = setTimeout(() => {
-            const fake = randomFrom(FAKE_MESSAGES);
-            setAnonMessages((prev) => [
-                ...prev,
-                { type: "them", text: fake, time: nowTime() },
-            ]);
-        }, 1800);
-    }, [selectedInterests]);
-
-    // Clicking the current-chat sidebar item
     function handleReturnToAnon() {
         if (anonConnected) {
             setActiveFriend(null);
@@ -160,38 +215,29 @@ export default function Chatting() {
     // Friend chat flow
     // ═════════════════════════════════════════════════════════════════════════
 
-    function handleFriendSelect(name) {
-        setActiveFriend(name);
+    function handleFriendSelect(friend) {
+        // friend = { id, name } object from your sidebar
+        setActiveFriend(friend);
         setCurrentView("friend");
 
-        // Init friend message history if it doesn't exist yet
-        if (!friendMsgs[name]) {
-            const initMsg = {
-                type: "system",
-                text: `You are now chatting with ${name}.`,
-            };
-            setFriendMsgs((prev) => ({ ...prev, [name]: [initMsg] }));
+        // fetch DM history via socket
+        socket.emit("dm:history", { friendId: friend.id, page: 1 });
 
-            // Fake reply after a short delay
-            findTimer.current = setTimeout(() => {
-                const fake = randomFrom(FAKE_MESSAGES);
-                setFriendMsgs((prev) => ({
-                    ...prev,
-                    [name]: [
-                        ...(prev[name] || []),
-                        { type: "them", text: fake, time: nowTime() },
-                    ],
-                }));
-            }, 1200);
-        }
+        socket.once("dm:history", ({ messages }) => {
+            const formatted = messages.map((m) => ({
+                type: m.sender._id === friend.id ? "them" : "me",
+                text: m.content,
+                time: nowTime(),
+            }));
+            setFriendMsgs((prev) => ({ ...prev, [friend.name]: formatted }));
+        });
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // Shared chat actions (Skip / End / Send / AddFriend)
+    // Shared chat actions
     // ═════════════════════════════════════════════════════════════════════════
 
     function handleSkip() {
-        // Only valid in anon chat
         setAnonMessages((prev) => [
             ...prev,
             { type: "system", text: "You skipped. Finding next match..." },
@@ -201,11 +247,13 @@ export default function Chatting() {
         setCurrentChatSub("Finding match");
         setActiveFriend(null);
         setCurrentView("finding");
-        findTimer.current = setTimeout(connectToAnon, 2000 + Math.random() * 1500);
+        // backend will respond with anon:waiting or anon:matched
+        socket.emit("anon:skip", { interests: selectedInterests });
     }
 
     function handleEnd() {
         if (currentView === "anon") {
+            socket.emit("anon:leave");
             setAnonMessages((prev) => [
                 ...prev,
                 { type: "system", text: "Chat ended." },
@@ -219,50 +267,33 @@ export default function Chatting() {
                 setCurrentView("lobby");
             }, 800);
         } else {
-            // Ending from friend chat — just go back to lobby, anon state untouched
             setActiveFriend(null);
             setCurrentView("lobby");
         }
     }
 
     function handleSend(text) {
-        const msg = { type: "me", text, time: nowTime() };
-
         if (currentView === "anon") {
-            setAnonMessages((prev) => [...prev, msg]);
-            findTimer.current = setTimeout(() => {
-                const fake = randomFrom(FAKE_MESSAGES);
-                setAnonMessages((prev) => [
-                    ...prev,
-                    { type: "them", text: fake, time: nowTime() },
-                ]);
-            }, 1200 + Math.random() * 800);
+            // emit to socket — anon:message:sent will echo back
+            socket.emit("anon:message", { content: text });
 
         } else if (currentView === "friend" && activeFriend) {
-            const name = activeFriend;
+            const msg = { type: "me", text, time: nowTime() };
             setFriendMsgs((prev) => ({
                 ...prev,
-                [name]: [...(prev[name] || []), msg],
+                [activeFriend.name]: [...(prev[activeFriend.name] || []), msg],
             }));
-            findTimer.current = setTimeout(() => {
-                const fake = randomFrom(FAKE_MESSAGES);
-                setFriendMsgs((prev) => ({
-                    ...prev,
-                    [name]: [
-                        ...(prev[name] || []),
-                        { type: "them", text: fake, time: nowTime() },
-                    ],
-                }));
-            }, 1200 + Math.random() * 800);
+            // send via DM socket
+            socket.emit("dm:send", {
+                receiverId: activeFriend.id,
+                content: text,
+            });
         }
     }
 
     function handleAddFriend() {
-        setAnonFriendAdded(true);
-        setAnonMessages((prev) => [
-            ...prev,
-            { type: "system", text: `${anonName} added to friends! 🎉` },
-        ]);
+        socket.emit("anon:friend-request");
+        // response handled by anon:friend-request:sent listener above
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -275,20 +306,20 @@ export default function Chatting() {
 
     const chatPeer = isAnonView
         ? { name: anonName, interests: `Interests: ${anonInterests}` }
-        : { name: activeFriend || "", interests: "Friend • Direct Message" };
+        : { name: activeFriend?.name || "", interests: "Friend • Direct Message" };
 
     const chatMessages = isAnonView
         ? anonMessages
-        : (activeFriend ? (friendMsgs[activeFriend] || []) : []);
+        : (activeFriend ? (friendMsgs[activeFriend.name] || []) : []);
 
     // ═════════════════════════════════════════════════════════════════════════
     // Render
     // ═════════════════════════════════════════════════════════════════════════
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-retro-yellow font-display text-black">
+        <div className="flex h-full w-full overflow-hidden">
 
-            {/* ── Left Sidebar ── */}
+            {/* ── Chat-Specific Left Sidebar (Friend List) ── */}
             <ChatSidebar
                 currentChatLabel={currentChatLabel}
                 currentChatSub={currentChatSub}
@@ -297,33 +328,21 @@ export default function Chatting() {
                 onFriendSelect={handleFriendSelect}
             />
 
-            {/* ── Main Area ── */}
-            <main className="flex-1 flex flex-col overflow-hidden">
-
-                {/* Top Bar */}
-                <div
-                    className="bg-white border-b-3 border-black px-6 flex items-center justify-between flex-shrink-0"
-                    style={{ minHeight: "73px" }}
-                >
-                    <div>
-                        <p className="text-xs font-black uppercase tracking-widest text-black/30">Anonymous</p>
-                        <h1 className="text-2xl font-black uppercase tracking-tighter leading-none">
-                            Campus Chat 💬
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 bg-retro-green border-3 border-black px-3 py-1.5 shadow-retro-sm">
-                            <div className="w-2 h-2 bg-white rounded-full pulse" />
-                            <span className="font-black uppercase text-xs text-white">847 Online</span>
-                        </div>
-                        <button className="relative w-10 h-10 bg-retro-yellow border-3 border-black flex items-center justify-center shadow-retro hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
-                            <span className="material-symbols-outlined text-xl">notifications</span>
-                            <div className="absolute -top-2 -right-2 w-5 h-5 bg-retro-red border-2 border-black flex items-center justify-center rounded-full">
-                                <span className="text-white text-xs font-black">3</span>
+            {/* ── Chat Main View Area ── */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* ── Local Topbar ── */}
+                <Topbar
+                    subtitle="Anonymous"
+                    title="Campus Chat 💬"
+                    extra={
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 bg-retro-green border-3 border-black px-3 py-1.5 shadow-retro-sm">
+                                <div className="w-2 h-2 bg-white rounded-full pulse" />
+                                <span className="font-black uppercase text-xs text-white">{847} Online</span>
                             </div>
-                        </button>
-                    </div>
-                </div>
+                        </div>
+                    }
+                />
 
                 {/* ── View Router ── */}
                 {currentView === "lobby" && (
@@ -347,7 +366,7 @@ export default function Chatting() {
 
                 {isChatView && (
                     <ChatView
-                        peer={chatMessages.length > 0 ? chatPeer : chatPeer}
+                        peer={chatPeer}
                         messages={chatMessages}
                         showAddFriend={isAnonView}
                         friendAdded={anonFriendAdded}
@@ -357,7 +376,7 @@ export default function Chatting() {
                         onAddFriend={handleAddFriend}
                     />
                 )}
-            </main>
+            </div>
         </div>
     );
 }

@@ -1,36 +1,32 @@
 import 'dotenv/config';
 import express from 'express';
 import http from 'http';
-// import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
-import connectDB from './src/config/db.js';
-// import initSocket from './src/socket/index.js';
-import auth from './src/middlewares/auth.middlewares.js';
+import connectDB  from './src/config/db.js';
+import initSocket from './src/socket/index.js';
+import auth       from './src/middlewares/auth.middlewares.js';
 
 // ── Route imports ──────────────────────────────────
-import authRoutes from './src/routes/auth.routes.js';
-import userRoutes from './src/routes/user.routes.js';
-import eventRoutes from './src/routes/events.routes.js';
-import notificationRoute from './src/routes/notification.routes.js';
-import mentorRoutes from './src/routes/mentor.routes.js';
-import communityRoutes from './src/routes/community.routes.js';
-// import chatRoutes      from './src/routes/chat.route.js';
-// import xpRoutes        from './src/routes/xp.routes.js';
+import authRoutes         from './src/routes/auth.routes.js';
+import userRoutes         from './src/routes/user.routes.js';
+import eventRoutes        from './src/routes/events.routes.js';
+import mentorRoutes       from './src/routes/mentor.routes.js';
+import communityRoutes    from './src/routes/community.routes.js';
+// import chatRoutes         from './src/routes/chat.routes.js';
+// import xpRoutes           from './src/routes/xp.routes.js';
+import notificationRoutes from './src/routes/notification.routes.js';
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT   = process.env.PORT || 5000;
 
 // ── Socket.IO ──────────────────────────────────────
-// const io = new Server(server, {
-//   cors: { origin: process.env.CLIENT_URL || '*', credentials: true },
-//   pingTimeout: 60000,
-// });
-// initSocket(io);
+const io = initSocket(server);
+app.set("io", io);
 
 // ── Middleware ─────────────────────────────────────
 app.use(helmet());
@@ -49,16 +45,14 @@ app.get('/health', (_req, res) => {
 });
 
 // ── Public routes ──────────────────────────────────
-app.use('/api/auth', authRoutes);
+app.use('/api/auth',     authRoutes);
 
 // ── Protected routes (auth applied at router level) ──
-app.use('/api/dashboard/events', auth, eventRoutes);
-app.use('/api/dashboard/users', auth, userRoutes);
-app.use('/api/dashboard/notifications', auth, notificationRoute);
-app.use('/api/dashboard/mentors', auth, mentorRoutes);
-app.use('/api/dashboard/communities', auth, communityRoutes);
-// app.use('/api/dashboard/chat',         auth, chatRoutes);
-// app.use('/api/dashboard/xp',           auth, xpRoutes);
+app.use('/api/dashboard/events',       auth, eventRoutes);
+app.use('/api/dashboard/users',        auth, userRoutes);
+app.use('/api/dashboard/mentors',      auth, mentorRoutes);
+app.use('/api/dashboard/communities',  auth, communityRoutes);
+app.use('/api/dashboard/notifications',auth, notificationRoutes);
 
 // ── 404 ────────────────────────────────────────────
 app.use((_req, res) => {

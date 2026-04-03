@@ -1,11 +1,9 @@
-import { useSidebar } from "../pages/Dashboard/DashboardLayout";
+import { useSidebar } from "../pages/Dashboard/SidebarContext";
 import { logout } from "../api/allApis/auth.api";
 import NotificationDropdown from "../pages/Dashboard/Notifications/NotificationDropdown";
-import { useState } from "react";
 
-export default function Topbar({ subtitle, title }) {
+export default function Topbar({ subtitle, title, extra }) {
   const { setIsSidebarOpen } = useSidebar();
-  // Removed redundant fetchNotifications from Topbar as it's handled in NotificationDropdown
 
   const handleLogout = async () => {
     try {
@@ -13,7 +11,6 @@ export default function Topbar({ subtitle, title }) {
     } catch (e) {
       console.error("Logout failed:", e);
     } finally {
-      // ❌ no localStorage anymore
       window.location.href = "/login";
     }
   };
@@ -40,6 +37,9 @@ export default function Topbar({ subtitle, title }) {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Page-specific extra content (e.g. Chat online count) */}
+        {extra}
+
         {/* Notifications */}
         <NotificationDropdown/>
 

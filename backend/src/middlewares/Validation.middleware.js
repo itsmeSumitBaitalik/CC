@@ -9,8 +9,7 @@ async function validate(req, res, next) {
 }
 
 export const signupValidator = [
-  body("fname").notEmpty().withMessage("First name is required"),
-  body("lname").notEmpty().withMessage("Last name is required"),
+  body("username").notEmpty().withMessage("username is required"),
 
   body("email")
     .notEmpty()
@@ -21,8 +20,8 @@ export const signupValidator = [
   body("password")
     .notEmpty()
     .withMessage("Password is required")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
+    .isLength({ min: 3 })
+    .withMessage("Password must be at least 3 characters"),
 
   body("terms")
     .notEmpty()
@@ -42,7 +41,7 @@ export const loginValidator = [
   body("password")
     .notEmpty()
     .withMessage("Password is required")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
+    .isLength({ min: 3 })
+    .withMessage("Password must be at least 3 characters"),
     validate
 ];

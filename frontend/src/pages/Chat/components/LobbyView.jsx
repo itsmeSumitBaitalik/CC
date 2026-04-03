@@ -51,7 +51,7 @@ export default function LobbyView({
   onStartChat,
 }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 overflow-y-auto retro-scroll bg-retro-yellow p-6">
+    <div className="flex-1 flex flex-col items-center pt-12 pb-12 gap-6 overflow-y-auto retro-scroll bg-retro-yellow px-6">
 
       {/* ── Mascot + Title ── */}
       <div className="text-center">
