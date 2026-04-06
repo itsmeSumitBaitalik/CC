@@ -1,9 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getEventStyle } from '../eventConfig';
 
-// ── Animations ─────────────────────────────────────────────────────────────
-// These keyframes are defined once in index.css or injected here the first
-// time the component mounts (avoids duplicating CSS in index.css for now).
 const MODAL_STYLES = `
   @keyframes reg-dialogIn {
     from { opacity: 0; transform: scale(0.95) translateY(10px); }
@@ -46,7 +43,6 @@ const MODAL_STYLES = `
   .reg-shake { animation: reg-shake 0.35s ease; }
 `;
 
-// ── Badge colour map (mirrors the HTML's .badge-* classes) ──────────────────
 const BADGE_STYLE_MAP = {
   hackathon:  { background: '#E05C3A', color: '#fff' },
   cultural:   { background: '#4CAF50', color: '#fff' },
@@ -63,7 +59,6 @@ function getBadgeStyle(type) {
   return BADGE_STYLE_MAP[type?.toLowerCase()] ?? BADGE_STYLE_MAP.other;
 }
 
-// ── Helper: seat bar colour ─────────────────────────────────────────────────
 function getSeatBarColor(pct) {
   if (pct >= 100) return '#E05C3A';
   if (pct >= 80)  return '#F5A623';
@@ -100,10 +95,6 @@ function spawnConfettiNodes(container) {
 // ── Departments & Years ─────────────────────────────────────────────────────
 const DEPARTMENTS = ['Computer Science', 'Electronics', 'Mechanical', 'Civil', 'IT', 'MBA', 'Other'];
 const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Alumni'];
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  Sub-components
-// ══════════════════════════════════════════════════════════════════════════════
 
 // ── Event Info Header ───────────────────────────────────────────────────────
 function EventInfoHeader({ event, onClose }) {

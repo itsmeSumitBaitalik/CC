@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
-import Topbar from "../../components/Topbar";
 import StatCard from "../../components/StatCard";
 import SectionHeader from "../../components/SectionHeader";
 import ProfileCard from "./components/ProfileCard";
 import AnnouncementList from "./components/AnnouncementList";
 import { sendFriendRequest } from "../../api/allApis/notification.api.js";
-import { userProfile } from "../../api/allApis/user.api.js";
+import { useCurrentUser, useTopbar } from "./SidebarContext";
 
 const stats = [
   { icon: "event", count: "4", label: "Events Joined", bg: "bg-retro-green", iconColor: "text-white" },
@@ -34,32 +32,15 @@ const topMentors = [
 ];
 
 export default function DashboardPage() {
-  const [firstName, setFirstName] = useState("");
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await userProfile();
+  const { currentUser } = useCurrentUser();
+  // console.log("current user data",currentUser)
+  const firstName = currentUser?.username || "";
 
-        // ✅ FIX: correct extraction
-        const user = res.data?.user;
-
-        if (user?.fname) {
-          setFirstName(user.fname);
-        } else {
-          console.log("fname missing in user object");
-        }
-
-      } catch (err) {
-        console.error("Failed to fetch dashboard profile name:", err);
-      }
-    };
-
-    fetchProfile();
-  }, []);
+  // Push topbar content to the shared layout topbar
+  useTopbar({ subtitle: "Dashboard", title: `Good Morning, ${firstName} 👋` });
 
   return (
     <>
-      <Topbar subtitle="Dashboard" title={`Good Morning, ${firstName} 👋`} />
 
       <div className="p-5 flex flex-col gap-5">
 
@@ -131,7 +112,7 @@ export default function DashboardPage() {
           {/* Right column: Profile + Mentors + Announcements */}
           <div className="flex flex-col gap-5">
 
-            <ProfileCard />
+            <ProfileCard currentUser={currentUser} />
 
             <div className="flex flex-col gap-3">
               <SectionHeader color="bg-retro-green" title="TOP MENTORS" size="sm" />

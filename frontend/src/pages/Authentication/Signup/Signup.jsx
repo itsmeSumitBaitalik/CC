@@ -27,9 +27,9 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const { fname, lname, email, password, terms } = formData;
+      const { username, email, password, terms } = formData;
 
-      const res = await signup(fname, lname, email, password, terms);
+      const res = await signup(username, email, password, terms);
 
       console.log("Signup success");
 

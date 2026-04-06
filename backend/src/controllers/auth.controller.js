@@ -24,7 +24,7 @@ export const login = async (req, res) => {
     const token = generateToken(
       user._id,
       user.email,
-      `${user.fname} ${user.lname}`,
+      `${user.username}`,
     );
 
     res.cookie("token", token, {
@@ -46,7 +46,7 @@ export const login = async (req, res) => {
 };
 
 export const signup = async (req, res) => {
-  const { fname, lname, email, password, terms } = req.body;
+  const { username, email, password, terms } = req.body;
 
   try {
     const existingEmail = await User.findOne({ email });
@@ -58,8 +58,7 @@ export const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const user = await User.create({
-      fname,
-      lname,
+      username,
       email,
       password: hashedPassword,
       terms,
@@ -68,7 +67,7 @@ export const signup = async (req, res) => {
     const token = generateToken(
       user._id,
       user.email,
-      `${user.fname} ${user.lname}`,
+      `${user.username}`,
     );
 
     res.cookie("token", token, {

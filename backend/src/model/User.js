@@ -3,13 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     // 🔴 Required for signup
-    fname: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    lname: {
+    username: {
       type: String,
       required: true,
       trim: true,
@@ -42,7 +36,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    dept: {
+    department: {
       type: String,
       default: "",
     },
@@ -52,7 +46,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    rollno: {
+    enrollment_no: {
       type: String,
       default: "",
     },
@@ -89,6 +83,12 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
+      },
+    ],
+    participatedEvents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "EventRegistration",
       },
     ],
   },

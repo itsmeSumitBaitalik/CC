@@ -1,16 +1,37 @@
 import User from '../model/User.js'
 
-export const usersProfile = async (req,res)=>{
+export const usersProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-    const userId = req.user.id; // ✅ comes from auth middleware
-    
-    const user = await User.findById(userId);
-    if(!user){
-        return res.status(404).json({message:"User not found"});
+    const user = await User.findById(userId)
+      .select("-password -__v")
+      .populate("friends", "username email pic")
+      .populate("participatedEvents", "title date");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({message:"User found",user});
 
-}
+    res.status(200).json({
+      user: {
+        _id: user._id, 
+        username: user.username,
+        email: user.email,
+        pic: user.pic,
+        bio: user.bio,
+        college: user.college,
+        department: user.department,
+        year: user.year,
+        friendsCount: user.friends.length,
+        isProfileComplete: user.isProfileComplete,
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const updateProfile = async (req, res) => {
   try {
@@ -22,14 +43,14 @@ export const updateProfile = async (req, res) => {
     delete updateData.role;
 
     // Check if profile is complete based on required fields
-    const requiredFields = ['fname', 'lname', 'college', 'dept', 'year', 'rollno'];
+    const requiredFields = ['username', 'college', 'department', 'year', 'enrollment_no'];
     const isComplete = requiredFields.every(field => updateData[field] || (req.user && req.user[field]));
 
     const user = await User.findByIdAndUpdate(
       id,
-      { 
+      {
         ...updateData,
-        isProfileComplete: isComplete 
+        isProfileComplete: isComplete
       },
       { new: true, runValidators: true }
     );
@@ -44,13 +65,13 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-export const deleteProfile = async (req,res)=>{
-    const {id} = req.params;
-    const user = await User.findByIdAndDelete(id);
-    if(!user){
-        return res.status(404).json({message:"User not found"});
-    }
-    res.status(200).json({message:"User deleted",user});   
+export const deleteProfile = async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findByIdAndDelete(id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  res.status(200).json({ message: "User deleted", user });
 }
 
 export const updateUserRole = async (req, res) => {

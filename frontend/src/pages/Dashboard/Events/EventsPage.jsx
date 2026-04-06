@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import Topbar from "../../../components/Topbar";
+import { useTopbar } from "../SidebarContext";
 import SectionHeader from "../../../components/SectionHeader";
 import Calendar from "./components/Calendar";
 import EventCard from "./components/EventCard";
@@ -40,7 +40,7 @@ const mapEventCard = (ev) => {
     seats: ev.totalSeats ? `0 / ${ev.totalSeats} seats` : "Free Entry",
     seatPct: ev.totalSeats ? "0%" : null,
     seatLabel: ev.totalSeats ? `0% seats filled` : null,
-    registered: false, // overridden by caller when registeredIds is known
+    registered: false,
     day: String(d.getDate()),
     month: MONTH_NAMES[d.getMonth()],
     detail: `${ev.location} • ${ev.time || 'TBA'}`,
@@ -65,12 +65,6 @@ const mapOngoingCard = (ev) => {
   };
 };
 
-// const QUICK_STATS_MOCK = [
-//   { icon: 'upcoming', count: '0', label: 'Upcoming', bg: 'bg-retro-green text-white' },
-//   { icon: 'play_circle', count: '0', label: 'Ongoing', bg: 'bg-retro-red text-white' },
-//   { icon: 'check_circle', count: '0', label: 'Completed', bg: 'bg-white', textClass: 'text-black/40' },
-//   { icon: 'bookmark', count: '0', label: 'Registered', bg: 'bg-retro-yellow', textClass: 'text-black/60' },
-// ];
 
 export default function EventsPage() {
   const [filter, setFilter] = useState("all");
@@ -85,7 +79,7 @@ export default function EventsPage() {
   const [registeredIds, setRegisteredIds] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user info, events, and my registrations on mount
+  // Fetch user info and events on mount
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
@@ -101,7 +95,7 @@ export default function EventsPage() {
       if (res.data) {
 
         // console.log("USER DATA : ",res)
-        
+
         setCurrentUser({
           id: res.data.user._id || res.data.user.id,
           role: res.data.user.role || "user"
@@ -119,13 +113,14 @@ export default function EventsPage() {
       setEvents(res.data.events || []);
     } catch (err) {
       console.error("Failed to fetch events:", err);
-      setEvents([]);
+      setEvents([]); // safety
     }
   };
 
   const fetchMyEvents = async () => {
     try {
       const res = await getMyEvents();
+      console.log("my events", res)
       const myEvents = res.data.events || res.data.myEvents || [];
       const ids = new Set(myEvents.map(ev => ev._id || ev.id));
       setRegisteredIds(ids);
@@ -141,7 +136,7 @@ export default function EventsPage() {
       setRegisteredIds(prev => new Set([...prev, eventId]));
     } catch (err) {
       console.error("Failed to register for event:", err);
-      throw err; // re-throw so modal can handle it
+      throw err;
     }
   };
 
@@ -158,14 +153,6 @@ export default function EventsPage() {
       throw err;
     }
   };
-
-  // const canManage = (ev) => {
-  //   console.log(")
-  //   if (!currentUser) return false;
-  //   if (currentUser.role === 'admin' || currentUser.role === 'Admin') return true;
-  //   if (ev.createdBy && ev.createdBy === currentUser.id) return true;
-  //   return false;
-  // };
 
   const handleEdit = (event) => {
     setEditingEvent(event);
@@ -214,7 +201,7 @@ export default function EventsPage() {
       { icon: 'upcoming', count: String(upcomingEvents.length), label: 'Upcoming', bg: 'bg-retro-green text-white' },
       { icon: 'play_circle', count: String(ongoingEvents.length), label: 'Ongoing', bg: 'bg-retro-red text-white' },
       { icon: 'check_circle', count: String(completedEvents.length), label: 'Completed', bg: 'bg-white', textClass: 'text-black/40' },
-      { icon: 'bookmark', count: String(registeredIds.size), label: 'Registered', bg: 'bg-retro-yellow', textClass: 'text-black/60' },
+      { icon: 'bookmark', count: '0', label: 'Registered', bg: 'bg-retro-yellow', textClass: 'text-black/60' },
     ];
   }, [ongoingEvents, upcomingEvents, completedEvents, registeredIds]);
 
@@ -255,8 +242,6 @@ export default function EventsPage() {
 
   return (
     <>
-      <Topbar subtitle="Campus Life" title="Events 🎉" />
-
       <div className="p-5 flex flex-col gap-5">
 
         {/* ── Calendar + Quick Stats ── */}

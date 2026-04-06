@@ -1,25 +1,11 @@
-import { useState, useEffect } from "react";
-import { userProfile } from "../../../api/allApis/user.api";
+import { useState } from "react";
 
-export default function ProfileCard() {
+export default function ProfileCard({ currentUser }) {
   const [profile, setProfile] = useState(null);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        
-        const res = await userProfile();
-        setProfile(res.data?.user || res.data || null);
-      } catch (err) {
-        console.error("Failed to fetch profile:", err);
-      }
-    };
-    fetchProfile();
-  }, []);
-
-  const displayName = profile ? `${profile.fname || ''} ${profile.lname || ''}`.trim() : "Jackie Chen";
-  const displayRole = profile?.role || "Student";
-  const displayDept = profile?.department || "Computer Science";
+  if (!currentUser) return null;
+  const { username, role, department, bio,interest } = currentUser;
+  // console.log("user data from profile card",username,email,role,department)
 
   return (
     <div className="retro-card overflow-hidden">
@@ -30,19 +16,19 @@ export default function ProfileCard() {
           </div>
         </div>
         <p className="retro-meta">Your Profile</p>
-        <p className="retro-title text-sm">{displayName}</p>
+        <p className="retro-title text-sm">{username}</p>
       </div>
       <div className="px-5 pb-5 -mt-6">
         <div className="retro-avatar retro-avatar-md bg-white shadow-retro mb-3 relative">
           <span className="material-symbols-outlined text-3xl">person</span>
           <div className="retro-status-dot online pulse"></div>
         </div>
-        <p className="retro-subtitle">{displayRole} • {displayDept}</p>
-        <p className="text-sm font-medium mt-2 text-black/70 leading-snug">Hackathon enthusiast. Always looking for the next big opportunity.</p>
+        <p className="retro-subtitle">{role} • {department}</p>
+        <p className="text-sm font-medium mt-2 text-black/70 leading-snug">{bio}</p>
         <div className="flex flex-wrap gap-1.5 mt-3">
-          <span className="retro-badge bg-retro-yellow">GAMING</span>
-          <span className="retro-badge">CODING</span>
-          <span className="retro-badge">MUSIC</span>
+          {interest.map((interest) => (
+            <span className="retro-badge bg-retro-yellow">{interest}</span>
+          ))}
         </div>
         <div className="grid grid-cols-3 gap-0 mt-4 border-3 border-black">
           <div className="text-center py-3 border-r-3 border-black">

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import FriendsRequest from "../model/FriendsRequest.js";
 import Notification from "../model/Notification.js";
 import User from "../model/User.js";
+import { onlineUsers } from "../socket/onlineUsers.js";
 
 //Notification controller
 export const createNotification = async (userId, type, referenceId, message) => {
@@ -27,7 +28,7 @@ export const getNotifications = async (req, res) => {
     })
       .populate({ 
         path: 'referenceId', 
-        populate: { path: 'sender', select: 'fname lname email' } 
+        populate: { path: 'sender', select: 'username email' } 
       })
       .sort({ createdAt: -1 });
 
@@ -84,7 +85,27 @@ export const sendFriendRequest = async (req, res) => {
     });
 
     // 3️⃣ Create Notification (stored only)
-    await createNotification(receiverId, "friend_request", friendRequest.id);
+    const notification = await Notification.create({
+      user: new mongoose.Types.ObjectId(receiverId),
+      type: "friend_request",
+      referenceId: friendRequest.id,
+    });
+
+    // 4️⃣ Emit to receiver if online
+    const io = req.app.get("io");
+    if (io) {
+      const receiverSocketId = onlineUsers.get(receiverId);
+      if (receiverSocketId) {
+        // Fetch sender's data for UI
+        const sender = await User.findById(senderId).select("username fname lname");
+        io.to(receiverSocketId).emit("notification:new", {
+          _id:         notification._id,
+          type:        "friend_request",
+          referenceId: { ...friendRequest.toObject(), sender },
+          createdAt:   notification.createdAt,
+        });
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -164,12 +185,26 @@ export const responseRequest = async (req, res) => {
     }
 
     // 6️⃣ Notify the sender
-    await createNotification(
-      request.sender,
-      "friend_request_response",
-      request._id,
-      `Your friend request was ${status}`
-    );
+    const notification = await Notification.create({
+      user: new mongoose.Types.ObjectId(request.sender),
+      type: "friend_request_response",
+      referenceId: request._id,
+      message: `Your friend request was ${status}`
+    });
+
+    // 7️⃣ Emit to sender if online
+    const io = req.app.get("io");
+    if (io) {
+      const senderSocketId = onlineUsers.get(request.sender.toString());
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("notification:new", {
+          _id:       notification._id,
+          type:      "friend_request_response",
+          message:   notification.message,
+          createdAt: notification.createdAt,
+        });
+      }
+    }
 
     res.json({
       success: true,

@@ -10,7 +10,7 @@ import DashboardLayout from "./pages/Dashboard/DashboardLayout.jsx";
 import DashboardPage from "./pages/Dashboard/DashboardPage.jsx";
 import EventsPage from "./pages/Dashboard/Events/EventsPage.jsx";
 import MentorsPage from "./pages/Dashboard/Mentors/MentorsPage.jsx";
-import SettingPage from "./pages/Setting/SettingPage.jsx";
+// import SettingPage from "./pages/Setting/SettingPage.jsx";
 import Chatting from "./pages/Chat/Chatting.jsx";
 
 
@@ -30,10 +30,8 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="events" element={<EventsPage />} />
           <Route path="mentors" element={<MentorsPage />} />
+          <Route path="chat" element={<Chatting />} />
         </Route>
-
-        {/* Chat — standalone full-screen page (opens in new tab) */}
-        <Route path="/dashboard/chat" element={<Chatting />} />
       </Routes>
     </BrowserRouter>
   );

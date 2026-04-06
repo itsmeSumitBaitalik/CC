@@ -27,7 +27,7 @@ const SignupForm = ({ onGoogleSignup, onSignup, isLoading }) => {
   const [showPw, setShowPw] = useState(false);
 
   const [formData, setFormData] = useState({
-    fname: "", lname: "", email: "", password: "", terms: false,
+    username: "", email: "", password: "", terms: false,
   });
 
   const strength = getStrength(formData.password);
@@ -36,7 +36,7 @@ const SignupForm = ({ onGoogleSignup, onSignup, isLoading }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async () => {
-    if (!formData.fname || !formData.lname || !formData.email || !formData.password) {
+    if (!formData.username || !formData.email || !formData.password) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -95,22 +95,8 @@ const SignupForm = ({ onGoogleSignup, onSignup, isLoading }) => {
               <span className="input-icon">person</span>
               <input
                 type="text" placeholder="Alex" required
-                value={formData.fname}
-                onChange={(e) => handleChange("fname", e.target.value)}
-                className={inputCls}
-              />
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-black mb-1.5">
-              Last Name *
-            </label>
-            <div className="relative">
-              <span className="input-icon">person</span>
-              <input
-                type="text" placeholder="Kumar" required
-                value={formData.lname}
-                onChange={(e) => handleChange("lname", e.target.value)}
+                value={formData.username}
+                onChange={(e) => handleChange("username", e.target.value)}
                 className={inputCls}
               />
             </div>
