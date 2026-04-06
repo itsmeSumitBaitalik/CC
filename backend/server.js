@@ -11,7 +11,7 @@ import connectDB from './src/config/db.js';
 import auth from './src/middlewares/auth.middlewares.js';
 
 // 👇 import socket initializer
-import initSocket from '../backend/src/socket/socket.js';
+import initSocket from './src/socket/index.js';
 
 // ── Route imports ──────────────────────────────────
 import authRoutes         from './src/routes/auth.routes.js';

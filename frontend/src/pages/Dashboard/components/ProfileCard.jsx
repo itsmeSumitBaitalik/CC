@@ -1,11 +1,12 @@
-import { useState } from "react";
+// import { useState } from "react";
 
 export default function ProfileCard({ currentUser }) {
-  const [profile, setProfile] = useState(null);
+  // const [profile, setProfile] = useState(null);
 
   if (!currentUser) return null;
-  const { username, role, department, bio,interest } = currentUser;
-  // console.log("user data from profile card",username,email,role,department)
+  console.log("user data from profile card",currentUser)
+  const { username, department, bio,interests} = currentUser;
+  console.log("user data from profile card",username,department,bio,interests)
 
   return (
     <div className="retro-card overflow-hidden">
@@ -23,11 +24,11 @@ export default function ProfileCard({ currentUser }) {
           <span className="material-symbols-outlined text-3xl">person</span>
           <div className="retro-status-dot online pulse"></div>
         </div>
-        <p className="retro-subtitle">{role} • {department}</p>
+        <p className="retro-subtitle">{role||"student"} • {department}</p>
         <p className="text-sm font-medium mt-2 text-black/70 leading-snug">{bio}</p>
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {interest.map((interest) => (
-            <span className="retro-badge bg-retro-yellow">{interest}</span>
+          {interest?.map((interest) => (
+            <span className="retro-badge bg-retro-yellow">{interests||"No Interest"}</span>
           ))}
         </div>
         <div className="grid grid-cols-3 gap-0 mt-4 border-3 border-black">

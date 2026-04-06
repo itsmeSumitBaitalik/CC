@@ -24,6 +24,7 @@ export const usersProfile = async (req, res) => {
         department: user.department,
         year: user.year,
         friendsCount: user.friends.length,
+        interests: user.interests,
         isProfileComplete: user.isProfileComplete,
       },
     });

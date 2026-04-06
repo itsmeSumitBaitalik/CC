@@ -1,5 +1,5 @@
 import Message from "../model/Message.js";
-import { onlineUsers } from "./anonChat.socket.js";
+import { onlineUsers } from "./onlineUsers.js";
 
 // ── Main handler ───────────────────────────────────
 const registerDMChat = (io, socket) => {

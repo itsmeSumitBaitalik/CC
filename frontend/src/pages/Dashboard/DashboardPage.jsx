@@ -112,7 +112,7 @@ export default function DashboardPage() {
           {/* Right column: Profile + Mentors + Announcements */}
           <div className="flex flex-col gap-5">
 
-            <ProfileCard currentUser={currentUser} />
+            <ProfileCard {...currentUser} />
 
             <div className="flex flex-col gap-3">
               <SectionHeader color="bg-retro-green" title="TOP MENTORS" size="sm" />

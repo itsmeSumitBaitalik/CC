@@ -18,7 +18,7 @@ export default function Sidebar() {
     { to: "/dashboard/mentors", icon: "person_search", label: "Mentors", iconBg: "bg-retro-yellow border-3 border-black", iconColor: "text-black", badge: "2", badgeBg: "bg-retro-green", subtitle: "Campus network", title: 'Mentors 🎓' },
     { to: "/dashboard/community", icon: "groups", label: "Community", iconBg: "bg-white border-3 border-black", iconColor: "text-black", subtitle: "Community" },
   ];
-  console.log("user data from sidebar", currentUser);
+  // console.log("user data from sidebar", currentUser);
   return (
     <>
       {/* Mobile Backdrop Overlay */}
