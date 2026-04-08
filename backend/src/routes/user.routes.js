@@ -5,7 +5,7 @@ import { adminOnly } from "../middlewares/auth.middlewares.js";
 const userRoute = express.Router();
 
 userRoute.get("/me/", usersProfile);
-userRoute.put("/update/:id", updateProfile);
+userRoute.patch("/update/:id", updateProfile);
 userRoute.delete("/delete/:id", adminOnly, deleteProfile);
 userRoute.patch("/role/:id", adminOnly, updateUserRole);
 

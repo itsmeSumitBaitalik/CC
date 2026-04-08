@@ -22,7 +22,7 @@ const NotificationItem = ({ notification, onRespond }) => {
   const avatar = sender?.avatar ? (
     <img
       src={sender.avatar}
-      alt={sender.fname}
+      alt={sender.username}
       className="w-9 h-9 rounded-full border-3 border-black object-cover"
     />
   ) : (
@@ -30,8 +30,8 @@ const NotificationItem = ({ notification, onRespond }) => {
       <span className="material-symbols-outlined text-lg">person</span>
     </div>
   );
-  console.log("Fname", sender?.fname)
-  const username = sender?.fname || 'Someone';
+  // console.log("username", referenceId?.sender?.username)
+  const ful = referenceId?.sender?.username || 'Someone';
   const time = timeAgo(createdAt);
 
   return (
@@ -43,11 +43,11 @@ const NotificationItem = ({ notification, onRespond }) => {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-black uppercase leading-tight">
           <span className="text-black">
-            {isAccepted ? 'You' : username}{' '}
+            {isAccepted ? 'You' : ful}{' '}
           </span>
           <span className="font-medium text-black/60">
             {isPending && 'sent you a friend request'}
-            {isAccepted && `accepted ${username} friend request`}
+            {isAccepted && `accepted ${ful} friend request`}
             {isRejected && 'declined your friend request'}
           </span>
         </p>

@@ -3,6 +3,7 @@ import NotificationHeader from './components/NotificationHeader';
 import NotificationItem from './components/NotificationItem';
 import NotificationEmptyState from './components/NotificationEmptyState';
 import { getNotifications, responseRequest } from '../../../api/allApis/notification.api';
+import socket from '../../../lib/socket';
 
 const NotificationDropdown = () => {
   const [notifications, setNotifications] = useState([]);
@@ -14,6 +15,7 @@ const NotificationDropdown = () => {
     try {
       const res = await getNotifications();
       // Extract notifications array from response
+      // console.log("notification response", res);  
       const data = res.data?.notifications || res.data || [];
       setNotifications(Array.isArray(data) ? data : []);
       updateUnreadCount(Array.isArray(data) ? data : []);
@@ -29,7 +31,21 @@ const NotificationDropdown = () => {
 
   useEffect(() => {
     fetchNotifications();
-    // Optional: set up polling or socket listener here
+
+    // Listen for real-time notifications
+    socket.on("notification:new", (newNotif) => {
+      setNotifications((prev) => {
+        // Prevent duplicates
+        if (prev.find(n => (n._id || n.id) === (newNotif._id || newNotif.id))) return prev;
+        const updated = [newNotif, ...prev];
+        updateUnreadCount(updated);
+        return updated;
+      });
+    });
+
+    return () => {
+      socket.off("notification:new");
+    };
   }, []);
 
   useEffect(() => {

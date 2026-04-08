@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import Topbar from "../../../components/Topbar";
+import { useTopbar } from "../SidebarContext";
 import SectionHeader from "../../../components/SectionHeader";
 import Calendar from "./components/Calendar";
 import EventCard from "./components/EventCard";
@@ -8,7 +8,7 @@ import QuickStats from "./components/QuickStats";
 import OngoingEventsSection from "./components/OngoingEventsSection";
 import CompletedEventsSection from "./components/CompletedEventsSection";
 import { getEventStyle } from "./eventConfig";
-import { getAllEvents, createEvent, updateEvent, deleteEvent } from "../../../api/allApis/event.api.js";
+import { getAllEvents, createEvent, updateEvent, deleteEvent, registerEvent, unregisterEvent, getMyEvents } from "../../../api/allApis/event.api.js";
 import { userProfile } from "../../../api/allApis/user.api.js";
 
 // Helper functions moved out for useMemo
@@ -65,12 +65,6 @@ const mapOngoingCard = (ev) => {
   };
 };
 
-// const QUICK_STATS_MOCK = [
-//   { icon: 'upcoming', count: '0', label: 'Upcoming', bg: 'bg-retro-green text-white' },
-//   { icon: 'play_circle', count: '0', label: 'Ongoing', bg: 'bg-retro-red text-white' },
-//   { icon: 'check_circle', count: '0', label: 'Completed', bg: 'bg-white', textClass: 'text-black/40' },
-//   { icon: 'bookmark', count: '0', label: 'Registered', bg: 'bg-retro-yellow', textClass: 'text-black/60' },
-// ];
 
 export default function EventsPage() {
   const [filter, setFilter] = useState("all");
@@ -82,13 +76,14 @@ export default function EventsPage() {
   const [currentUser, setCurrentUser] = useState(null);
 
   const [events, setEvents] = useState([]);
+  const [registeredIds, setRegisteredIds] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch user info and events on mount
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      await Promise.all([fetchUserProfile(), fetchEvents()]);
+      await Promise.all([fetchUserProfile(), fetchEvents(), fetchMyEvents()]);
       setIsLoading(false);
     };
     init();
@@ -100,7 +95,7 @@ export default function EventsPage() {
       if (res.data) {
 
         // console.log("USER DATA : ",res)
-        
+
         setCurrentUser({
           id: res.data.user._id || res.data.user.id,
           role: res.data.user.role || "user"
@@ -115,23 +110,49 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       const res = await getAllEvents();
-
-      // console.log("API RESPONSE:", res.data); // 👈 add this once
-
-      setEvents(res.data.events || []); // ✅ FIXED
+      setEvents(res.data.events || []);
     } catch (err) {
       console.error("Failed to fetch events:", err);
       setEvents([]); // safety
     }
   };
 
-  // const canManage = (ev) => {
-  //   console.log(")
-  //   if (!currentUser) return false;
-  //   if (currentUser.role === 'admin' || currentUser.role === 'Admin') return true;
-  //   if (ev.createdBy && ev.createdBy === currentUser.id) return true;
-  //   return false;
-  // };
+  const fetchMyEvents = async () => {
+    try {
+      const res = await getMyEvents();
+      console.log("my events", res)
+      const myEvents = res.data.events || res.data.myEvents || [];
+      const ids = new Set(myEvents.map(ev => ev._id || ev.id));
+      setRegisteredIds(ids);
+    } catch (err) {
+      console.error("Failed to fetch my events:", err);
+      setRegisteredIds(new Set());
+    }
+  };
+
+  const handleRegister = async (eventId) => {
+    try {
+      await registerEvent(eventId);
+      setRegisteredIds(prev => new Set([...prev, eventId]));
+    } catch (err) {
+      console.error("Failed to register for event:", err);
+      throw err;
+    }
+  };
+
+  const handleUnregister = async (eventId) => {
+    try {
+      await unregisterEvent(eventId);
+      setRegisteredIds(prev => {
+        const next = new Set(prev);
+        next.delete(eventId);
+        return next;
+      });
+    } catch (err) {
+      console.error("Failed to unregister from event:", err);
+      throw err;
+    }
+  };
 
   const handleEdit = (event) => {
     setEditingEvent(event);
@@ -164,12 +185,16 @@ export default function EventsPage() {
   }, [events]);
 
   const upcomingEvents = useMemo(() => {
-    return events.filter(ev => getStatus(ev.date) === 'upcoming').map(mapEventCard);
-  }, [events]);
+    return events
+      .filter(ev => getStatus(ev.date) === 'upcoming')
+      .map(ev => ({ ...mapEventCard(ev), registered: registeredIds.has(ev._id || ev.id) }));
+  }, [events, registeredIds]);
 
   const completedEvents = useMemo(() => {
-    return events.filter(ev => getStatus(ev.date) === 'completed').map(mapEventCard);
-  }, [events]);
+    return events
+      .filter(ev => getStatus(ev.date) === 'completed')
+      .map(ev => ({ ...mapEventCard(ev), registered: registeredIds.has(ev._id || ev.id) }));
+  }, [events, registeredIds]);
 
   const dynamicStats = useMemo(() => {
     return [
@@ -178,7 +203,7 @@ export default function EventsPage() {
       { icon: 'check_circle', count: String(completedEvents.length), label: 'Completed', bg: 'bg-white', textClass: 'text-black/40' },
       { icon: 'bookmark', count: '0', label: 'Registered', bg: 'bg-retro-yellow', textClass: 'text-black/60' },
     ];
-  }, [ongoingEvents, upcomingEvents, completedEvents]);
+  }, [ongoingEvents, upcomingEvents, completedEvents, registeredIds]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this event?")) {
@@ -217,8 +242,6 @@ export default function EventsPage() {
 
   return (
     <>
-      <Topbar subtitle="Campus Life" title="Events 🎉" />
-
       <div className="p-5 flex flex-col gap-5">
 
         {/* ── Calendar + Quick Stats ── */}
@@ -320,10 +343,12 @@ export default function EventsPage() {
                     {upcomingEvents.length > 0 ? (
                       upcomingEvents.map((ev, i) => (
                         <EventCard
-                          key={i}
-                          event={events}
+                          key={ev.id || i}
+                          event={ev}
                           onEdit={currentUser?.role === "admin" || currentUser?.role === "Admin" ? handleEdit : undefined}
                           onDelete={currentUser?.role === "admin" || currentUser?.role === "Admin" ? handleDelete : undefined}
+                          onRegister={handleRegister}
+                          onUnregister={handleUnregister}
                         />
                       ))
                     ) : (

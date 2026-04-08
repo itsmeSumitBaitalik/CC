@@ -6,8 +6,8 @@ import Api from "../axios";
 export const userProfile = () => {
     return Api.get(`/dashboard/users/me`)
 }
-export const updateProfile = (id) => {
-    return Api.put(`/dashboard/users/update/${id}`)
+export const updateProfile = (id, data) => {
+    return Api.patch(`/dashboard/users/update/${id}`, data)
 }
 export const deleteProfile = (id) => {
     return Api.delete(`/dashboard/users/delete/${id}`)

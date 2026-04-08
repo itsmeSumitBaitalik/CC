@@ -13,7 +13,31 @@ export const getAllEvents = async (req, res) => {
 
     const events = await Event.find(filter)
       .sort({ date: 1 })
-      .populate("createdBy", "username avatar");
+      .populate("createdBy", "username avatar")
+      .lean();
+
+    const eventsWithSeats = await Promise.all(
+      events.map(async (event) => {
+        const count = await EventRegistration.countDocuments({
+          event: event._id,
+        });
+
+        return {
+          ...event,
+          registeredCount: count,
+          availableSeats:
+            event.totalSeats === 0
+              ? "Unlimited"
+              : event.totalSeats - count,
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      count: eventsWithSeats.length,
+      events: eventsWithSeats,
+    });
 
     res.json({ success: true, count: events.length, events });
   } catch (error) {

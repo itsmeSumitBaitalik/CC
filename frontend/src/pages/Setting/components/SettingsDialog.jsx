@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Toggle from "./Toggle";
 import StrengthMeter from "./StrengthMeter";
+import { updateProfile } from "../../../api/allApis/user.api";
 
 const navItems = [
   { id: "profile", icon: "person", label: "Profile" },
@@ -18,14 +19,77 @@ const panelTitles = {
   privacy: "Privacy & Data",
 };
 
-export default function SettingsDialog({ onClose }) {
+export default function SettingsDialog({ onClose, currentUser }) {
+  console.log("user data from settings dialog", currentUser);
   const [activePanel, setActivePanel] = useState("profile");
   const [timeFormat, setTimeFormat] = useState("12h");
   const [show2FA, setShow2FA] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  const [profileData, setProfileData] = useState({
+    username: currentUser?.username || "",
+    enrollment_no: currentUser?.enrollment_no || "",
+    email: currentUser?.email || "",
+    bio: currentUser?.bio || "",
+    department: currentUser?.department || "",
+    year: currentUser?.year || "",
+    college: currentUser?.college || currentUser?.collegeName || "",
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfileData({
+        username: currentUser.username || "",
+        enrollment_no: currentUser.enrollment_no || "",
+        email: currentUser.email || "",
+        bio: currentUser.bio || "",
+        department: currentUser.department || "",
+        year: currentUser.year || "",
+        college: currentUser.college || currentUser.collegeName || "",
+      });
+    }
+  }, [currentUser]);
+
+  const handleReset = () => {
+    if (activePanel === "profile") {
+      setProfileData({
+        username: currentUser?.username || "",
+        enrollment_no: currentUser?.enrollment_no || "",
+        email: currentUser?.email || "",
+        bio: currentUser?.bio || "",
+        department: currentUser?.department || "",
+        year: currentUser?.year || "",
+        college: currentUser?.college || currentUser?.collegeName || "",
+      });
+    } else if (activePanel === "security") {
+      setNewPassword("");
+      setShow2FA(false);
+    } else if (activePanel === "preferences") {
+      setTimeFormat("12h");
+    }
+  };
+
+  const handleSave = async () => {
+    if (activePanel === "profile") {
+      try {
+        if (!currentUser?._id) return;
+        
+        await updateProfile(currentUser._id, profileData);
+        alert("Profile updated successfully!");
+        window.location.reload();
+      } catch (error) {
+        alert("Failed to update profile.");
+      }
+    } else {
+      // Logic for other panels (security, preferences)
+    }
+  };
+
   const strength = newPassword.length === 0 ? 0 : newPassword.length < 6 ? 1 : newPassword.length < 10 ? 2 : /[A-Z]/.test(newPassword) && /\d/.test(newPassword) ? 4 : 3;
+
+  const fullName = profileData.username ? `${profileData.username}` : "";
+  const subtitle = [profileData.year, profileData.department, profileData.college].filter(Boolean).join(" • ");
 
   return (
     <>
@@ -40,7 +104,7 @@ export default function SettingsDialog({ onClose }) {
           <div className="flex flex-col md:flex-row flex-1 min-h-0 bg-white">
 
             {/* Left nav */}
-            <div className="w-full md:w-56 flex-shrink-0 flex flex-col border-b-3 md:border-b-0 md:border-r-3 border-black bg-white">  
+            <div className="w-full md:w-56 flex-shrink-0 flex flex-col border-b-3 md:border-b-0 md:border-r-3 border-black bg-white">
               {/* Header — matching img1 reference */}
               <div className="retro-section-header justify-between flex-shrink-0 border-b-3 border-black md:border-b-0">
                 <div className="flex items-center gap-3">
@@ -60,7 +124,7 @@ export default function SettingsDialog({ onClose }) {
               {/* Nav items */}
               <div className="flex-none md:flex-1 flex flex-col overflow-x-auto md:overflow-y-auto retro-scroll">
                 <p className="retro-meta px-4 pt-4 mb-2 md:pt-3 md:pb-1 tracking-widest hidden md:block">Settings Menu</p>
-                <nav className="flex flex-row md:flex-col gap-2 md:gap-0.5 px-4 md:px-2 pt-3 pb-3 md:pb-2">
+                <nav className="flex flex-row md:flex-col gap-2 md:gap-1.5 px-4 md:px-2 pt-3 pb-3 md:pb-2">
                   {navItems.map(item => (
                     <button
                       key={item.id}
@@ -85,17 +149,16 @@ export default function SettingsDialog({ onClose }) {
             {/* Right content */}
             <div className="flex-1 flex flex-col min-w-0 min-h-0">
               {/* Content header */}
-              <div className="retro-section-header justify-between flex-shrink-0">
-                <div>
+              <div className="retro-section-header justify-between flex-shrink-0 w-full"> 
+                  <div >
                   <p className="retro-subtitle">Account</p>
                   <h2 className="retro-title text-lg tracking-tighter">{panelTitles[activePanel]}</h2>
-                </div>
-              </div>
-
-              {/* Action Bar - Shared across all panels */}
-              <div className="bg-white border-b-3 border-black px-6 py-3 flex items-center justify-end gap-3 flex-shrink-0">
-                <button className="retro-btn-sm bg-white">Reset</button>
-                <button className="retro-btn-sm retro-btn-dark">Save Changes</button>
+                  </div>
+                  {/* Action Bar - Shared across all panels */}
+                  <div className="flex items-center justify-end gap-3 flex-shrink-0 ">
+                    <button onClick={handleReset} className="retro-btn-sm bg-white">Reset</button>
+                    <button onClick={handleSave} className="retro-btn-sm retro-btn-dark">Save Changes</button>
+                  </div>
               </div>
 
               {/* Scrollable content */}
@@ -115,14 +178,14 @@ export default function SettingsDialog({ onClose }) {
                         </div>
                         <div className="flex-1 w-full">
                           <div className="flex flex-col md:flex-row items-center gap-2 mb-1 justify-center md:justify-start">
-                            <h3 className="retro-title text-xl">Jackie Chen</h3>
+                            <h3 className="retro-title text-xl">{fullName || "Your Name"}</h3>
                             <span className="retro-badge bg-retro-green text-white">Active Member</span>
                           </div>
-                          <p className="retro-subtitle">2nd Year • Computer Science • VJTI Mumbai</p>
+                          <p className="retro-subtitle">{subtitle || "Student"}</p>
                           <div className="mt-4 md:mt-3 text-left">
                             <div className="flex justify-between mb-1">
                               <span className="retro-label">Campus XP</span>
-                              <span className="retro-label">720 / 1000 XP</span>
+                              <span className="retro-label">{"Score" / "1000 XP"}</span>
                             </div>
                             <div className="retro-progress-track h-3 bg-white">
                               <div className="h-full bg-retro-green progress-bar" style={{ "--target-w": "72%", width: "72%" }}></div>
@@ -161,16 +224,21 @@ export default function SettingsDialog({ onClose }) {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white">
                         {[
-                          { label: "Username", value: "jackie_chen" },
-                          { label: "College ID", value: "CS2023087" },
-                          { label: "Email Address", value: "jackie@campus.edu" },
-                          { label: "Phone Number", value: "+91 98765 43210" },
-                          { label: "Department", value: "Computer Science" },
-                          { label: "Year of Study", value: "2nd Year" },
+                          { key: "username", label: "Username" },
+                          { key: "enrollment_no", label: "College ID" },
+                          { key: "email", label: "Email Address" },
+                          { key: "bio", label: "Bio" },
+                          { key: "college", label: "College Name" },
+                          { key: "department", label: "Department" },
+                          { key: "year", label: "Year" },
                         ].map((field, i) => (
                           <div key={i} className="flex flex-col gap-1">
                             <label className="retro-label">{field.label}</label>
-                            <input className="retro-input" defaultValue={field.value} />
+                            <input 
+                              className="retro-input" 
+                              value={profileData[field.key]} 
+                              onChange={(e) => setProfileData({ ...profileData, [field.key]: e.target.value })}
+                            />
                           </div>
                         ))}
                       </div>
@@ -226,7 +294,7 @@ export default function SettingsDialog({ onClose }) {
                           <h3 className="retro-title text-sm">{n.title}</h3>
                           <p className="retro-subtitle mt-0.5">{n.desc}</p>
                         </div>
-                        <Toggle checked={n.default} onChange={() => {}} />
+                        <Toggle checked={n.default} onChange={() => { }} />
                       </div>
                     ))}
                   </div>
@@ -267,7 +335,7 @@ export default function SettingsDialog({ onClose }) {
                           <h3 className="retro-title text-sm">{p.title}</h3>
                           <p className="retro-subtitle mt-0.5">{p.desc}</p>
                         </div>
-                        <Toggle checked={p.default} onChange={() => {}} />
+                        <Toggle checked={p.default} onChange={() => { }} />
                       </div>
                     ))}
                     <div className="retro-card p-5 border-retro-red" style={{ borderColor: "#E05C3A" }}>

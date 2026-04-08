@@ -23,6 +23,6 @@ export const registerEvent = (id) => {
 export const unregisterEvent = (id) => {
     return Api.post(`/dashboard/events/unregister/${id}`)
 }
-export const getMyEvents = (id) => {
-    return Api.get(`/dashboard/events/myevent/${id}`)
+export const getMyEvents = () => {
+    return Api.get(`/dashboard/events/myevent`)
 }
