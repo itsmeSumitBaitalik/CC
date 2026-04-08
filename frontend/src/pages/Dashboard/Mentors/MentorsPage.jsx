@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getAllMentors } from "../../../api/allApis/mentors.api.js";
 import SectionHeader from "../../../components/SectionHeader";
 import StarRating from "./components/StarRating";
 import MentorCard from "./components/MentorCard";
@@ -6,26 +7,6 @@ import OnlineCarousel from "./components/OnlineCarousel";
 import MentorForm from "./components/MentorForm";
 import { useTopbar } from "../SidebarContext";
 
-const allMentors = [
-  { name: "Rahul Verma", dept: "4th Year • CS", skills: ["React", "Node.js", "DSA"], category: "tech", rating: 5.0, ratingCount: 24, bio: "Helping juniors crack their first internship through React, DSA and interview prep.", online: true, mine: true, color: "bg-retro-green", students: 18, sessions: 42, withYou: "3mo" },
-  { name: "Ananya Singh", dept: "Alumni • UI/UX Design", skills: ["Figma", "UI/UX", "Branding", "Portfolio"], category: "design", rating: 4.0, ratingCount: 11, bio: "Ex-Flipkart designer helping students build portfolios that get them hired.", online: false, mine: true, color: "bg-retro-yellow", students: 9, sessions: 17, withYou: "1mo" },
-  { name: "Vikram Shah", dept: "Faculty • ECE", skills: ["IoT", "Python", "Research"], category: "tech research", rating: 4.8, bio: "Faculty mentor guiding students in IoT and research papers.", online: true },
-  { name: "Priya Nair", dept: "MBA • Alumni", skills: ["Finance", "Excel", "Investment"], category: "finance", rating: 4.3, bio: "MBA alumni helping students navigate finance and internships.", online: true },
-  { name: "Arjun Das", dept: "3rd Year • CS", skills: ["ML", "PyTorch", "NLP"], category: "tech", rating: 4.5, bio: "ML researcher helping students break into AI/ML.", online: true },
-  { name: "Sneha Reddy", dept: "Alumni • Design", skills: ["UI", "Motion", "Branding"], category: "design", rating: 4.9, bio: "Motion designer helping design students find their voice.", online: true },
-  { name: "Dr. Meena Iyer", dept: "Faculty • Economics", skills: ["Research", "Economics", "Policy"], category: "research finance", rating: 4.6, bio: "Economics faculty guiding research and policy analysis.", online: false },
-  { name: "Karan Mehta", dept: "4th Year • ECE", skills: ["VLSI", "MATLAB", "Embedded"], category: "tech", rating: 4.2, bio: "ECE senior helping juniors with VLSI and GATE prep.", online: true },
-  { name: "Tanya Bose", dept: "Alumni • Product", skills: ["Product", "Strategy", "PM"], category: "design tech", rating: 4.7, bio: "Ex-Razorpay PM helping students break into PM careers.", online: false },
-];
-
-const onlineMentors = [
-  { name: "Rahul Verma", dept: "CS • 4th Yr", skills: ["React", "DSA"] },
-  { name: "Vikram Shah", dept: "ECE • Faculty", skills: ["IoT", "Python"] },
-  { name: "Priya Nair", dept: "MBA • Alumni", skills: ["Finance", "Excel"] },
-  { name: "Arjun Das", dept: "CS • 3rd Yr", skills: ["ML", "PyTorch"] },
-  { name: "Sneha Reddy", dept: "Design • Alumni", skills: ["UI", "Motion"] },
-  { name: "Karan Mehta", dept: "ECE • 4th Yr", skills: ["VLSI", "MATLAB"] },
-];
 
 const cardColors = ["bg-retro-green", "bg-retro-yellow", "bg-retro-red"];
 const mentorPerks = [
@@ -38,14 +19,49 @@ export default function MentorsPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
+  const [mentorsData, setMentorsData] = useState({ all: [], online: [] });
 
-  const filteredMentors = allMentors.filter(m => {
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const res = await getAllMentors();
+        if (res.data && res.data.success) {
+          const mapped = res.data.mentors.map((m, i) => ({
+            id: m._id || m.id,
+            name: m.name,
+            dept: [m.year ? `${m.year} Year` : null, m.department || m.domain].filter(Boolean).join(" • ") || m.role,
+            skills: m.skills || [],
+            category: (m.categories || []).join(" "),
+            rating: m.rating?.average || 0,
+            ratingCount: m.rating?.count || 0,
+            bio: m.bio || "",
+            online: m.status?.online || false,
+            mine: m.isMine || false,
+            color: cardColors[i % cardColors.length],
+            students: m.engagement?.students || 0,
+            sessions: m.engagement?.sessions || 0,
+            withYou: (m.engagement?.withYouMonths || 0) + "mo"
+          }));
+
+          setMentorsData({
+            all: mapped,
+            online: mapped.filter(x => x.online)
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch all mentors", err);
+      }
+    };
+    fetchMentors();
+  }, []);
+
+  const filteredMentors = mentorsData.all.filter(m => {
     const catMatch = activeFilter === "all" || m.category.includes(activeFilter);
     const searchMatch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.skills.some(s => s.toLowerCase().includes(search.toLowerCase()));
     return catMatch && searchMatch;
   });
 
-  const myMentors = allMentors.filter(m => m.mine);
+  const myMentors = mentorsData.all.filter(m => m.mine);
 
   useTopbar({ subtitle: "Campus Network", title: "Mentors 🎓" });
 
@@ -56,8 +72,8 @@ export default function MentorsPage() {
         {/* Hero Stats */}
         <div className="bg-white border-3 border-black shadow-retro grid grid-cols-2 md:grid-cols-4 divide-x-3 divide-black">
           {[
-            { icon: "groups", count: "48", label: "Total Mentors", bg: "bg-retro-green" },
-            { icon: "wifi", count: "12", label: "Online Now", bg: "bg-retro-yellow" },
+            { icon: "groups", count: mentorsData.all.length, label: "Total Mentors", bg: "bg-retro-green" },
+            { icon: "wifi", count: mentorsData.online.length, label: "Online Now", bg: "bg-retro-yellow" },
             { icon: "bookmark_added", count: "2", label: "Assigned to Me", bg: "bg-retro-red" },
             { icon: "star", count: "4.8", label: "Avg Rating", bg: "bg-white" },
           ].map((s, i) => (
@@ -121,8 +137,8 @@ export default function MentorsPage() {
 
         {/* Online Now */}
         <div>
-          <SectionHeader color="bg-retro-green" title="ONLINE NOW" badge="● 12 Live" badgeBg="bg-retro-green" />
-          <div className="mt-4"><OnlineCarousel mentors={onlineMentors} /></div>
+          <SectionHeader color="bg-retro-green" title="ONLINE NOW" badge={`● ${mentorsData.online.length} Live`} badgeBg="bg-retro-green" />
+          <div className="mt-4"><OnlineCarousel mentors={mentorsData.online} /></div>
         </div>
 
         {/* All Mentors */}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { useTopbar } from "../SidebarContext";
+
 import SectionHeader from "../../../components/SectionHeader";
+import { toast } from "react-toastify";
 import Calendar from "./components/Calendar";
 import EventCard from "./components/EventCard";
 import EventModal from "./components/EventModal";
@@ -9,9 +10,8 @@ import OngoingEventsSection from "./components/OngoingEventsSection";
 import CompletedEventsSection from "./components/CompletedEventsSection";
 import { getEventStyle } from "./eventConfig";
 import { getAllEvents, createEvent, updateEvent, deleteEvent, registerEvent, unregisterEvent, getMyEvents } from "../../../api/allApis/event.api.js";
-import { userProfile } from "../../../api/allApis/user.api.js";
+import { useCurrentUser } from "../SidebarContext";
 
-// Helper functions moved out for useMemo
 const getStatus = (dateStr) => {
   const eventDate = new Date(dateStr);
   const today = new Date();
@@ -25,87 +25,29 @@ const getStatus = (dateStr) => {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const mapEventCard = (ev) => {
-  const d = new Date(ev.date);
-  const type = ev.eventType?.toLowerCase() || 'other';
-  return {
-    ...ev,
-    id: ev._id || ev.id,
-    type,
-    date: `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`,
-    title: ev.title,
-    desc: ev.description,
-    loc: ev.location,
-    time: ev.time || "TBA",
-    seats: ev.totalSeats ? `0 / ${ev.totalSeats} seats` : "Free Entry",
-    seatPct: ev.totalSeats ? "0%" : null,
-    seatLabel: ev.totalSeats ? `0% seats filled` : null,
-    registered: false,
-    day: String(d.getDate()),
-    month: MONTH_NAMES[d.getMonth()],
-    detail: `${ev.location} • ${ev.time || 'TBA'}`,
-    attended: false
-  };
-};
-
-const mapOngoingCard = (ev) => {
-  const type = ev.eventType?.toLowerCase() || 'other';
-  return {
-    ...ev,
-    id: ev._id || ev.id,
-    type,
-    title: ev.title,
-    desc: ev.description,
-    loc: ev.location,
-    time: ev.time || "TBA",
-    progress: '0h / 1h', // Mocked progress
-    percent: '0%',
-    people: '0 participating',
-    btnText: 'View Details →'
-  };
-};
-
 
 export default function EventsPage() {
+  const { currentUser } = useCurrentUser();
+
   const [filter, setFilter] = useState("all");
   const [selectedDay, setSelectedDay] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
 
   const [events, setEvents] = useState([]);
   const [registeredIds, setRegisteredIds] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user info and events on mount
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      await Promise.all([fetchUserProfile(), fetchEvents(), fetchMyEvents()]);
+      await Promise.all([fetchEvents(), fetchMyEvents()]);
       setIsLoading(false);
     };
     init();
   }, []);
-
-  const fetchUserProfile = async () => {
-    try {
-      const res = await userProfile();
-      if (res.data) {
-
-        // console.log("USER DATA : ",res)
-
-        setCurrentUser({
-          id: res.data.user._id || res.data.user.id,
-          role: res.data.user.role || "user"
-        });
-      }
-    } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-      // If unauthorized, currentUser remains null
-    }
-  };
 
   const fetchEvents = async () => {
     try {
@@ -181,19 +123,19 @@ export default function EventsPage() {
   }, [events]);
 
   const ongoingEvents = useMemo(() => {
-    return events.filter(ev => getStatus(ev.date) === 'ongoing').map(mapOngoingCard);
+    return events.filter(ev => getStatus(ev.date) === 'ongoing');
   }, [events]);
 
   const upcomingEvents = useMemo(() => {
     return events
       .filter(ev => getStatus(ev.date) === 'upcoming')
-      .map(ev => ({ ...mapEventCard(ev), registered: registeredIds.has(ev._id || ev.id) }));
+      .map(ev => ({ ...ev, registered: registeredIds.has(ev._id || ev.id) }));
   }, [events, registeredIds]);
 
   const completedEvents = useMemo(() => {
     return events
       .filter(ev => getStatus(ev.date) === 'completed')
-      .map(ev => ({ ...mapEventCard(ev), registered: registeredIds.has(ev._id || ev.id) }));
+      .map(ev => ({ ...ev, registered: registeredIds.has(ev._id || ev.id) }));
   }, [events, registeredIds]);
 
   const dynamicStats = useMemo(() => {
@@ -209,11 +151,11 @@ export default function EventsPage() {
     if (window.confirm("Are you sure you want to delete this event?")) {
       try {
         await deleteEvent(id);
-        alert("Event deleted successfully!");
+        toast.success("Event deleted successfully!");
         fetchEvents();
       } catch (err) {
         console.error(err);
-        alert("Failed to delete event.");
+        toast.error("Failed to delete event.");
       }
     }
   };
@@ -224,17 +166,17 @@ export default function EventsPage() {
       if (editingEvent) {
         const id = editingEvent._id || editingEvent.id;
         await updateEvent(id, formData);
-        alert("Event updated successfully!");
+        toast.success("Event updated successfully!");
       } else {
         await createEvent(formData);
-        alert("Event created successfully!");
+        toast.success("Event created successfully!");
       }
       setIsModalOpen(false);
       setEditingEvent(null);
       fetchEvents();
     } catch (err) {
       console.error(err);
-      alert("Failed to save event.");
+      toast.error("Failed to save event.");
     } finally {
       setIsSubmitting(false);
     }

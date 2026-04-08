@@ -1,7 +1,7 @@
 import { getEventStyle } from '../eventConfig';
 
 export default function OngoingEventCard({ event }) {
-  const { type, title, desc, loc, time, progress, percent, people, btnText } = event;
+  const type = event.eventType?.toLowerCase() || 'general';
   const style = getEventStyle(type);
   const { icon, headerBg, barColor, color: liveColor } = style;
 
@@ -21,32 +21,32 @@ export default function OngoingEventCard({ event }) {
       </div>
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div className="flex flex-col">
-          <h3 className="retro-title text-xl mb-1">{title}</h3>
-          <p className="text-sm font-medium text-black/60 mb-3 line-clamp-2">{desc}</p>
+          <h3 className="retro-title text-xl mb-1">{event.title}</h3>
+          <p className="text-sm font-medium text-black/60 mb-3 line-clamp-2">{event.description}</p>
           <div className="meta-row mb-3 flex flex-wrap gap-4">
-            <span className="meta-item"><span className="material-symbols-outlined text-sm">location_on</span>{loc}</span>
-            <span className="meta-item"><span className="material-symbols-outlined text-sm">schedule</span>{time}</span>
+            <span className="meta-item"><span className="material-symbols-outlined text-sm">location_on</span>{event.location}</span>
+            <span className="meta-item"><span className="material-symbols-outlined text-sm">schedule</span>{event.startTime || event.time || 'TBA'}</span>
           </div>
           <div className="mb-0">
             <div className="flex justify-between mb-1">
               <span className="retro-label text-[10px] uppercase opacity-50">Progress</span>
-              <span className="retro-label text-[10px] uppercase opacity-50">{progress}</span>
+              <span className="retro-label text-[10px] uppercase opacity-50">0h / 1h</span>
             </div>
             <div className="retro-progress-track h-3 bg-black/5">
               <div 
-                className={`h-full ${barColor} grow-bar`} 
-                style={{ "--w": percent || '0%', width: percent || '0%' }}
-              ></div>
+              className={`h-full ${barColor} grow-bar`} 
+              style={{ "--w": '0%', width: '0%' }}
+            ></div>
             </div>
           </div>
         </div>
         <div className="flex items-center justify-between mt-4 flex-shrink-0">
           <div className="meta-item">
             <span className="material-symbols-outlined text-sm">group</span>
-            <span className="retro-label text-xs">{people}</span>
+            <span className="retro-label text-xs">{event.registeredCount || '0'} participating</span>
           </div>
           <button className="retro-btn-sm retro-btn-primary px-4">
-            {btnText || 'JOIN →'}
+            {'View Details →'}
           </button>
         </div>
       </div>

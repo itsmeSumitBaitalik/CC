@@ -14,7 +14,7 @@ const eventRoute = express.Router();
 
 // ── Read (any logged in user) ──────────────────────
 eventRoute.get("/", getAllEvents);
-eventRoute.get("/myevent/:id", getEventById);
+eventRoute.get("/myevent", getEventById);
 
 // ── Write (mentor + admin only) ────────────────────
 eventRoute.post("/create", restrictTo("mentor", "admin"), createEvent);

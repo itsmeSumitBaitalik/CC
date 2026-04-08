@@ -1,7 +1,12 @@
 import { getEventStyle } from '../eventConfig';
 
 export default function CompletedEventRow({ event }) {
-  const { day, month, type, title, detail, attended } = event;
+  const d = new Date(event.date);
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = String(d.getDate());
+  const month = MONTHS[d.getMonth()];
+  const detail = `${event.location || ''} • ${event.startTime || event.time || 'TBA'}`;
+  const type = event.eventType?.toLowerCase() || 'general';
   const style = getEventStyle(type);
   const { icon, iconBg, textColor: iconTextColor } = style;
 
@@ -18,13 +23,13 @@ export default function CompletedEventRow({ event }) {
         <span className="retro-label text-xs uppercase">{type}</span>
       </div>
       <div className="px-4 py-3 flex-1 min-w-0">
-        <h3 className="retro-title text-base leading-none truncate">{title}</h3>
+        <h3 className="retro-title text-base leading-none truncate">{event.title}</h3>
         <p className="retro-meta mt-1 text-[10px] uppercase opacity-50 truncate">{detail}</p>
       </div>
       <div className="px-4 flex-shrink-0 flex items-center gap-3">
         <div className="meta-item bg-black/5 px-2 py-1 rounded-sm border-2 border-black/10">
-          <span className={`material-symbols-outlined text-sm ${attended ? 'text-retro-green' : 'text-black/30'}`}>{attended ? 'check_circle' : 'cancel'}</span>
-          <span className={`retro-label text-[10px] uppercase font-black ${attended ? 'text-retro-green' : 'text-black/30'}`}>{attended ? 'Attended' : 'Missed'}</span>
+          <span className={`material-symbols-outlined text-sm ${event.attended ? 'text-retro-green' : 'text-black/30'}`}>{event.attended ? 'check_circle' : 'cancel'}</span>
+          <span className={`retro-label text-[10px] uppercase font-black ${event.attended ? 'text-retro-green' : 'text-black/30'}`}>{event.attended ? 'Attended' : 'Missed'}</span>
         </div>
         <button className="retro-btn-sm bg-white hover:bg-black hover:text-white transition-all text-[10px] font-black uppercase px-3">
           Details →

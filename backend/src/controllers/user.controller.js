@@ -26,6 +26,10 @@ export const usersProfile = async (req, res) => {
         friendsCount: user.friends.length,
         interests: user.interests,
         isProfileComplete: user.isProfileComplete,
+        friends:user.friends,
+        anonName:user.anonName,
+        role:user.role,
+        status:user.status,
       },
     });
 

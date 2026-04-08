@@ -24,21 +24,21 @@ export default function Sidebar() {
       {/* Mobile Backdrop Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      <aside className={`fixed md:relative z-50 flex-shrink-0 bg-white border-r-3 border-black flex flex-col h-full overflow-hidden stripe-bg transition-all duration-300 ease-in-out w-64 ${isSidebarCollapsed ? "md:w-20" : ""} ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
+      <aside className={`fixed lg:relative z-50 flex-shrink-0 bg-white border-r-3 border-black flex flex-col h-full overflow-hidden stripe-bg transition-all duration-300 ease-in-out w-64 ${isSidebarCollapsed ? "lg:w-20" : ""} ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
 
         {/* Logo */}
-        <div className={`border-b-3 border-black bg-retro-yellow flex items-center px-4 md:px-5 gap-3 flex-shrink-0 transition-all duration-300 justify-between ${isSidebarCollapsed ? "md:justify-center" : ""}`} style={{ minHeight: "73px" }}>
+        <div className={`border-b-3 border-black bg-retro-yellow flex items-center px-4 md:px-5 gap-3 flex-shrink-0 transition-all duration-300 justify-between ${isSidebarCollapsed ? "lg:justify-center" : ""}`} style={{ minHeight: "73px" }}>
 
           <div className="w-10 h-10 bg-black border-3 border-black flex items-center justify-center flex-shrink-0 shadow-retro-sm">
             <span className="material-symbols-outlined text-retro-yellow text-2xl">hub</span>
           </div>
 
-          <div className={`flex-1 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? "md:hidden" : ""}`}>
+          <div className={`flex-1 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
             <span className="font-black uppercase tracking-tighter text-lg leading-none block truncate">
               Campus<span className="text-white bg-black px-1">Connect</span>
             </span>
@@ -56,14 +56,14 @@ export default function Sidebar() {
         </div>
 
         {/* Nav label */}
-        <div className={`px-4 pt-4 pb-2 flex-shrink-0 flex items-center justify-between ${isSidebarCollapsed ? "md:justify-center" : ""}`}>
-          <span className={`retro-meta tracking-widest transition-all ${isSidebarCollapsed ? "md:hidden" : ""}`}>Main Menu</span>
+        <div className={`px-4 pt-4 pb-2 flex-shrink-0 flex items-center justify-between ${isSidebarCollapsed ? "lg:justify-center" : ""}`}>
+          <span className={`retro-meta tracking-widest transition-all ${isSidebarCollapsed ? "lg:hidden" : ""}`}>Main Menu</span>
 
           {/* Mobile Close Toggle */}
           <button
-            className="flex w-7 h-7 bg-white border-2 border-black shadow-retro-sm items-center justify-center hover:bg-black hover:text-white transition-colors flex-shrink-0 cursor-pointer md:flex"
+            className="flex w-7 h-7 bg-white border-2 border-black shadow-retro-sm items-center justify-center hover:bg-black hover:text-white transition-colors flex-shrink-0 cursor-pointer lg:flex"
             onClick={() => {
-              if (window.innerWidth < 768) {
+              if (window.innerWidth < 1024) {
                 setIsSidebarOpen(false);
               } else {
                 setIsSidebarCollapsed(prev => !prev);
@@ -71,7 +71,7 @@ export default function Sidebar() {
             }}
           >
             <span className="material-symbols-outlined text-sm font-black">
-              {window.innerWidth < 768
+              {window.innerWidth < 1024
                 ? "keyboard_double_arrow_left"
                 : isSidebarCollapsed
                   ? "keyboard_double_arrow_right"
@@ -88,7 +88,7 @@ export default function Sidebar() {
               key: item.to,
               title: isSidebarCollapsed ? item.label : undefined,
               className: ({ isActive }) =>
-                `flex items-center gap-3 py-3 border-3 transition-all px-3 ${isSidebarCollapsed ? "md:justify-center md:px-0" : ""} ` +
+                `flex items-center gap-3 py-3 border-3 transition-all px-3 ${isSidebarCollapsed ? "lg:justify-center lg:px-0" : ""} ` +
                 (isActive
                   ? "nav-active border-black shadow-retro-sm"
                   : "border-transparent hover:border-black hover:bg-retro-yellow hover:shadow-retro-sm"),
@@ -103,20 +103,20 @@ export default function Sidebar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={isSidebarCollapsed ? item.label : undefined}
-                  className={`flex items-center gap-3 py-3 border-3 transition-all px-3 ${isSidebarCollapsed ? "md:justify-center md:px-0" : ""} border-transparent hover:border-black hover:bg-retro-yellow hover:shadow-retro-sm`}
+                  className={`flex items-center gap-3 py-3 border-3 transition-all px-3 ${isSidebarCollapsed ? "lg:justify-center lg:px-0" : ""} border-transparent hover:border-black hover:bg-retro-yellow hover:shadow-retro-sm`}
                   onClick={() => setIsSidebarOpen(false)}
                 >
                   <div className={`nav-icon relative w-9 h-9 flex items-center justify-center flex-shrink-0 ${item.iconBg}`}>
                     <span className={`material-symbols-outlined ${item.iconColor} text-xl`}>{item.icon}</span>
                     {item.badge && (
-                      <div className={`hidden ${isSidebarCollapsed ? "md:flex" : ""} absolute -top-1.5 -right-1.5 w-5 h-5 items-center justify-center rounded-full text-[11px] font-black border-2 border-black ${item.badgeBg} text-white z-10`}>
+                      <div className={`hidden ${isSidebarCollapsed ? "lg:flex" : ""} absolute -top-1.5 -right-1.5 w-5 h-5 items-center justify-center rounded-full text-[11px] font-black border-2 border-black ${item.badgeBg} text-white z-10`}>
                         {item.badge}
                       </div>
                     )}
                   </div>
-                  <span className={`retro-label text-sm truncate ${isSidebarCollapsed ? "md:hidden" : ""}`}>{item.label}</span>
+                  <span className={`retro-label text-sm truncate ${isSidebarCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
                   {item.badge && (
-                    <div className={`ml-auto retro-badge ${item.badgeBg} text-white leading-none ${isSidebarCollapsed ? "md:!hidden" : ""}`}>
+                    <div className={`ml-auto retro-badge ${item.badgeBg} text-white leading-none ${isSidebarCollapsed ? "lg:!hidden" : ""}`}>
                       {item.badge}
                     </div>
                   )}
@@ -134,14 +134,14 @@ export default function Sidebar() {
                 <div className={`nav-icon relative w-9 h-9 flex items-center justify-center flex-shrink-0 ${item.iconBg}`}>
                   <span className={`material-symbols-outlined ${item.iconColor} text-xl`}>{item.icon}</span>
                   {item.badge && (
-                    <div className={`hidden ${isSidebarCollapsed ? "md:flex" : ""} absolute -top-1.5 -right-1.5 w-5 h-5 items-center justify-center rounded-full text-[11px] font-black border-2 border-black ${item.badgeBg} text-white z-10`}>
+                    <div className={`hidden ${isSidebarCollapsed ? "lg:flex" : ""} absolute -top-1.5 -right-1.5 w-5 h-5 items-center justify-center rounded-full text-[11px] font-black border-2 border-black ${item.badgeBg} text-white z-10`}>
                       {item.badge}
                     </div>
                   )}
                 </div>
-                <span className={`retro-label text-sm truncate ${isSidebarCollapsed ? "md:hidden" : ""}`}>{item.label}</span>
+                <span className={`retro-label text-sm truncate ${isSidebarCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
                 {item.badge && (
-                  <div className={`ml-auto retro-badge ${item.badgeBg} text-white leading-none ${isSidebarCollapsed ? "md:!hidden" : ""}`}>
+                  <div className={`ml-auto retro-badge ${item.badgeBg} text-white leading-none ${isSidebarCollapsed ? "lg:!hidden" : ""}`}>
                     {item.badge}
                   </div>
                 )}
@@ -152,10 +152,10 @@ export default function Sidebar() {
         </nav>
 
         {/* Profile card */}
-        <div className={`border-t-3 border-black p-3 bg-white flex-shrink-0 transition-all ${isSidebarCollapsed ? "flex md:justify-center" : ""}`}>
+        <div className={`border-t-3 border-black p-3 bg-white flex-shrink-0 transition-all ${isSidebarCollapsed ? "flex lg:justify-center" : ""}`}>
           {isSidebarCollapsed && (
             <div
-              className="!hidden md:!flex retro-avatar retro-avatar-sm bg-white shadow-retro-sm border-2 border-black cursor-pointer hover:-translate-y-1 transition-transform items-center justify-center"
+              className="!hidden lg:!flex retro-avatar retro-avatar-sm bg-white shadow-retro-sm border-2 border-black cursor-pointer hover:-translate-y-1 transition-transform items-center justify-center"
               style={{ width: "44px", height: "44px" }}
               onClick={() => setShowSettings(true)}
               title={displayName}
@@ -165,7 +165,7 @@ export default function Sidebar() {
           )}
 
           {/* Full Profile Box */}
-          <div className={`bg-retro-yellow border-3 border-black p-3 shadow-retro flex-1 ${isSidebarCollapsed ? "md:hidden" : ""}`}>
+          <div className={`bg-retro-yellow border-3 border-black p-3 shadow-retro flex-1 ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
             <div className="flex items-center gap-3">
               <div className="relative flex-shrink-0">
                 <div className="retro-avatar retro-avatar-sm bg-white shadow-retro-sm" style={{ width: "44px", height: "44px" }}>

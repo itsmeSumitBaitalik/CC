@@ -3,6 +3,7 @@ import { generateToken } from "../lib/tokens.js";
 import User from "../model/User.js";
 import { createOtpForUser } from "../lib/storeOtp.js";
 import bcrypt from "bcryptjs";
+import { generateAnonymousName } from "../lib/anonName.js";
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -47,6 +48,8 @@ export const login = async (req, res) => {
 
 export const signup = async (req, res) => {
   const { username, email, password, terms } = req.body;
+  
+  const anonName = generateAnonymousName();
 
   try {
     const existingEmail = await User.findOne({ email });
@@ -60,6 +63,7 @@ export const signup = async (req, res) => {
     const user = await User.create({
       username,
       email,
+      anonName,
       password: hashedPassword,
       terms,
     });

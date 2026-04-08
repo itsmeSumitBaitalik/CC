@@ -21,7 +21,7 @@ export default function Topbar({ subtitle, title, extra }) {
         {/* Mobile Hamburger Toggle */}
         <button 
           onClick={() => setIsSidebarOpen(true)}
-          className="md:hidden w-10 h-10 bg-white border-3 border-black flex items-center justify-center shadow-retro-sm hover:bg-black hover:text-white transition-colors focus:outline-none"
+          className="lg:hidden w-10 h-10 bg-white border-3 border-black flex items-center justify-center shadow-retro-sm hover:bg-black hover:text-white transition-colors focus:outline-none"
         >
           <span className="material-symbols-outlined font-black">menu</span>
         </button>

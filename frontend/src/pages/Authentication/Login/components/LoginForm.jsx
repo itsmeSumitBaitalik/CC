@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { forget } from "../../../../api/allApis/auth.api";
+import { toast } from "react-toastify";
 
 const LoginForm = ({ onSubmit, isLoading }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,7 +11,7 @@ const LoginForm = ({ onSubmit, isLoading }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      alert("Please enter both email and password.");
+      toast.warning("Please enter both email and password.");
       return;
     }
     const success = await onSubmit?.(email, password);
@@ -21,15 +22,15 @@ const LoginForm = ({ onSubmit, isLoading }) => {
 
   const handleForgetPassword = async () => {
     if (!email) {
-      alert("Please enter your email first to reset your password.");
+      toast.warning("Please enter your email first to reset your password.");
       return;
     }
     try {
       await forget(email);
-      alert("OTP sent to your email!");
+      toast.success("OTP sent to your email!");
     } catch (error) {
       console.error("Forget password failed:", error);
-      alert("Failed to send reset email.");
+      toast.error("Failed to send reset email.");
     }
   };
 

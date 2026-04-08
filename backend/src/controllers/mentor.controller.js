@@ -49,6 +49,22 @@ export const getMentorById = async (req, res) => {
   }
 };
 
+// ── GET /api/dashboard/mentors/me ────────────────
+export const getMyMentorProfile = async (req, res) => {
+  try {
+    const mentor = await Mentor.findOne({ user: req.user.id })
+      .populate("user", "username avatar email");
+
+    if (!mentor) {
+      return res.status(404).json({ success: false, message: "Mentor profile not found" });
+    }
+
+    res.json({ success: true, mentor });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ── POST /api/dashboard/mentors/create ────────────
 export const createMentorProfile = async (req, res) => {
   try {
@@ -64,6 +80,9 @@ export const createMentorProfile = async (req, res) => {
 
     if (!name || !role || !bio) {
       return res.status(400).json({ success: false, message: "Name, role and bio are required" });
+    }
+    if (req.user.role === "student") {
+      return res.status(403).json({ success: false, message: "You are not authorized to create a mentor profile" });
     }
 
     const mentor = await Mentor.create({
@@ -152,6 +171,28 @@ export const rateMentor = async (req, res) => {
     await mentor.save();
 
     res.json({ success: true, message: "Rating submitted", rating: mentor.rating });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const requestMentor = async (req, res) => {
+  try {
+    const mentor = await Mentor.findById(req.params.id);
+    if (!mentor) {
+      return res.status(404).json({ success: false, message: "Mentor not found" });
+    }
+
+    // can't request yourself
+    if (mentor.user.toString() === req.user.id.toString()) {
+      return res.status(400).json({ success: false, message: "You cannot request yourself" });
+    }
+
+    // add request to mentor
+    mentor.requests.push(req.user.id);
+    await mentor.save();
+
+    res.json({ success: true, message: "Request sent" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

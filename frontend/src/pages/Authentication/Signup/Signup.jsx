@@ -7,6 +7,7 @@ import SignupForm from "./components/SignupForm";
 import { useState } from "react";
 import { signup } from "../../../api/allApis/auth.api";
 import { TickerData } from "../../../asset/data";
+import { toast } from "react-toastify";
 
 
 const XP_CARDS = [
@@ -20,7 +21,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignup = () => {
-    alert("Google Sign-Up: Connect your OAuth provider here.");
+    toast.info("Google Sign-Up: Connect your OAuth provider here.");
   };
 
   const handleSignup = async (formData) => {
@@ -32,6 +33,7 @@ const Signup = () => {
       const res = await signup(username, email, password, terms);
 
       console.log("Signup success");
+      toast.success("Signup successful!");
 
       // redirect
       setTimeout(() => {
@@ -42,7 +44,7 @@ const Signup = () => {
 
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Signup failed");
+      toast.error(error.response?.data?.message || "Signup failed");
     } finally {
       setIsLoading(false);
     }

@@ -47,8 +47,10 @@ export const getAllEvents = async (req, res) => {
 
 // ── GET /api/dashboard/events/:id ─────────────────
 export const getEventById = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const event = await Event.findById(req.params.id)
+    const event = await Event.findById(id)
       .populate("createdBy", "username avatar");
 
     if (!event) {

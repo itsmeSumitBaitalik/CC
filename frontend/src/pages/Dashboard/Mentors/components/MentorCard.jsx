@@ -1,6 +1,9 @@
 import StarRating from "./StarRating";
 
 export default function MentorCard({ mentor, colorClass }) {
+  
+  console.log("mentor data from mentor card", mentor);
+
   return (
     <div className="retro-card card-lift overflow-hidden">
       <div className={`${colorClass} h-2 border-b-3 border-black`}></div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Toggle from "./Toggle";
 import StrengthMeter from "./StrengthMeter";
 import { updateProfile } from "../../../api/allApis/user.api";
+import { toast } from "react-toastify";
 
 const navItems = [
   { id: "profile", icon: "person", label: "Profile" },
@@ -76,10 +77,10 @@ export default function SettingsDialog({ onClose, currentUser }) {
         if (!currentUser?._id) return;
         
         await updateProfile(currentUser._id, profileData);
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         window.location.reload();
       } catch (error) {
-        alert("Failed to update profile.");
+        toast.error("Failed to update profile.");
       }
     } else {
       // Logic for other panels (security, preferences)

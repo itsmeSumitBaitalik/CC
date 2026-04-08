@@ -1,6 +1,7 @@
 import { useState } from "react";
 import GoogleButton from "../../shared/components/GoogleButton";
 import AuthCardContainer from "../../shared/components/AuthCardContainer";
+import { toast } from "react-toastify";
 
 /* ── Shared input class ────────────────────────────────────────── */
 const inputCls =
@@ -37,11 +38,11 @@ const SignupForm = ({ onGoogleSignup, onSignup, isLoading }) => {
 
   const handleSubmit = async () => {
     if (!formData.username || !formData.email || !formData.password) {
-      alert("Please fill in all required fields.");
+      toast.warning("Please fill in all required fields.");
       return;
     }
     if (!formData.terms) {
-      alert("Please accept the Terms of Service to continue.");
+      toast.warning("Please accept the Terms of Service to continue.");
       return;
     }
 

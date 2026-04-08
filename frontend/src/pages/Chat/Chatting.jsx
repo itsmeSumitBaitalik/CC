@@ -4,8 +4,9 @@ import ChatSidebar  from "./components/ChatSidebar";
 import LobbyView    from "./components/LobbyView";
 import FindingView  from "./components/FindingView";
 import ChatView     from "./components/ChatView";
-import socket from "../../lib/socket"; // ← real socket instance
+import socket from "../../lib/socket";
 import Topbar from "../../components/Topbar";
+import { useCurrentUser } from "../Dashboard/SidebarContext";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,9 @@ function nowTime() {
 
 // ── Chatting ──────────────────────────────────────────────────────────────────
 export default function Chatting() {
+    const { currentUser } = useCurrentUser();
+    console.log("current user friends list : ",currentUser);
+
 
     // ── View ──────────────────────────────────────────────────────────────────
     // 'lobby' | 'finding' | 'anon' | 'friend'
@@ -326,6 +330,7 @@ export default function Chatting() {
                 activeFriend={activeFriend}
                 onReturnToAnon={handleReturnToAnon}
                 onFriendSelect={handleFriendSelect}
+                currentUser={currentUser}
             />
 
             {/* ── Chat Main View Area ── */}

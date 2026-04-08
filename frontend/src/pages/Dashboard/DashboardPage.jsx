@@ -4,6 +4,10 @@ import ProfileCard from "./components/ProfileCard";
 import AnnouncementList from "./components/AnnouncementList";
 import { sendFriendRequest } from "../../api/allApis/notification.api.js";
 import { useCurrentUser, useTopbar } from "./SidebarContext";
+import { toast } from "react-toastify";
+import { useState, useEffect } from "react";
+import { getAllMentors } from "../../api/allApis/mentors.api.js";
+import {getAllEvents} from "../../api/allApis/event.api.js";
 
 const stats = [
   { icon: "event", count: "4", label: "Events Joined", bg: "bg-retro-green", iconColor: "text-white" },
@@ -25,16 +29,32 @@ const communities = [
   { icon: "science", name: "Science Club", members: "156 members", bg: "bg-retro-yellow" },
 ];
 
-const topMentors = [
-  { name: "Rahul Verma", dept: "Senior • CS", skills: ["React", "Node"] },
-  { name: "Ananya Singh", dept: "Alumni • Design", skills: ["Figma", "UI/UX"] },
-  { name: "Vikram Shah", dept: "Faculty • ECE", skills: ["IoT", "Python"] },
-];
-
 export default function DashboardPage() {
   const { currentUser } = useCurrentUser();
   // console.log("current user data",currentUser)
   const firstName = currentUser?.username || "";
+  
+  const [topMentors, setTopMentors] = useState([]);
+
+  useEffect(() => {
+    const fetchTopMentors = async () => {
+      try {
+        const res = await getAllMentors();
+        if (res.data && res.data.success) {
+          const mapped = res.data.mentors.slice(0, 3).map(m => ({
+            id: m._id || m.id,
+            name: m.name,
+            dept: [m.year ? `${m.year} Yr` : null, m.department || m.domain].filter(Boolean).join(" • ") || m.role,
+            skills: m.skills.slice(0, 2)
+          }));
+          setTopMentors(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard mentors", err);
+      }
+    };
+    fetchTopMentors();
+  }, []);
 
   // Push topbar content to the shared layout topbar
   useTopbar({ subtitle: "Dashboard", title: `Good Morning, ${firstName} 👋` });
@@ -135,7 +155,7 @@ export default function DashboardPage() {
                       onClick={async () => {
                         try {
                           await sendFriendRequest(mentor.id || 'default_id');
-                          alert(`Friend request sent to ${mentor.name}!`);
+                          toast.success(`Friend request sent to ${mentor.name}!`);
                         } catch (e) {
                           console.error(e);
                         }

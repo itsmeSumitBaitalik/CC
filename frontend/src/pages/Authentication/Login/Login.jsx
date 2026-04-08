@@ -1,5 +1,6 @@
 import { login } from "../../../api/allApis/auth.api"; // adjust path
 import { useState } from "react";
+import { toast } from "react-toastify";
 import TickerBanner from "../shared/components/TickerBanner";
 import AuthLeftPanel from "../shared/components/AuthLeftPanel";
 import AuthFooter from "../shared/components/AuthFooter";
@@ -20,7 +21,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleLogin = () => {
-    alert("Google Sign-In: Connect your OAuth provider here.");
+    toast.info("Google Sign-In: Connect your OAuth provider here.");
   };
 
   const handleLogin = async (email, password) => {
@@ -30,6 +31,7 @@ const Login = () => {
       const res = await login(email, password);
 
       console.log("Login success");
+      toast.success("Login successful!");
 
       // redirect
       setTimeout(() => {
@@ -40,7 +42,7 @@ const Login = () => {
 
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Login failed");
+      toast.error(error.response?.data?.message || "Login failed");
     } finally {
       setIsLoading(false);
     }

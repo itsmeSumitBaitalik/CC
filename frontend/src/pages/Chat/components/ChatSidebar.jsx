@@ -1,12 +1,3 @@
-// ── ChatSidebar ──────────────────────────────────────────────────────────────
-// Left sidebar for the chat page.
-// Props:
-//   currentChatLabel  – anon match name shown in the "Current Chat" slot
-//   currentChatSub    – subtitle (interests / status) for the current chat
-//   activeFriend      – name of the friend whose chat is open, or null
-//   onReturnToAnon    – called when current-chat item is clicked
-//   onFriendSelect    – called with friend.name when a friend item is clicked
-
 const FRIENDS = [
     { name: "Priya S.",  lastMsg: "Hey what's up!",             online: true,  unread: 2 },
     { name: "Arjun D.",  lastMsg: "Did you see the hackathon?",  online: true,  unread: 0 },
@@ -62,6 +53,7 @@ export default function ChatSidebar({
     activeFriend,
     onReturnToAnon,
     onFriendSelect,
+    currentUser,
 }) {
     // current-chat-item is active when no friend chat is open
     const anonItemActive = activeFriend === null;
@@ -148,20 +140,6 @@ export default function ChatSidebar({
             {/* ── Footer ── */}
             <div className="border-t-3 border-black flex-shrink-0">
 
-                {/* Settings link
-                <a
-                    href="/settings"
-                    className="flex items-center gap-3 px-4 py-3 border-b-3 border-black hover:bg-retro-yellow transition-colors"
-                >
-                    <div className="w-9 h-9 bg-white border-3 border-black flex items-center justify-center flex-shrink-0 shadow-retro-sm">
-                        <span className="material-symbols-outlined text-black text-xl">settings</span>
-                    </div>
-                    <span className="font-black uppercase text-sm">Settings</span>
-                    <span className="material-symbols-outlined text-black/30 text-base ml-auto">open_in_new</span>
-                </a> */}
-
-                {/* Profile card */}
-
                 {/* <ProfileCard/> */}
                 <div className="p-3 bg-white">
                     <div className="bg-retro-yellow border-3 border-black p-3 shadow-retro">
@@ -173,8 +151,10 @@ export default function ChatSidebar({
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-retro-green border-2 border-black rounded-full pulse" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-black uppercase text-sm leading-none">Jackie Chen</p>
-                                <p className="text-xs font-bold text-black/60 mt-0.5">2nd Year • CS</p>
+                                <p className="font-black uppercase text-sm leading-none">{currentUser?.username || "Student"}</p>
+                                <p className="text-xs font-bold text-black/60 mt-0.5">
+                                    {[currentUser?.year ? `${currentUser.year} Year` : null, currentUser?.department].filter(Boolean).join(" • ") || "Campus Member"}
+                                </p>
                             </div>
                         </div>
                     </div>

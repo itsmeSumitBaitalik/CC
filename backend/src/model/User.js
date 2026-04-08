@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    anonName:{
+      type:String,
+      default:"",
+      unique:true,
+    },
 
     email: {
       type: String,
@@ -85,6 +90,11 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    status:{
+      type:String,
+      enum:["online","offline"],
+      default:"offline",
+    },
     participatedEvents: [
       {
         type: mongoose.Schema.Types.ObjectId,

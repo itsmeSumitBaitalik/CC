@@ -4,17 +4,25 @@ import { getEventStyle } from '../eventConfig';
 import RegistrationModal from './RegistrationModal';
 
 export default function EventCard({ event, onEdit, onDelete, onRegister, onUnregister }) {
-  const { type, date, title, desc, loc, time, seats, seatPct, seatLabel, registered } = event;
-  const style = getEventStyle(event?.type);
+  const type = event.eventType?.toLowerCase() || 'general';
+  const style = getEventStyle(type);
   const { icon, headerBg, badgeColor, iconBg: iconBgColor } = style;
+
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const d = new Date(event.date);
+  const displayDate = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+
+  const seatPct = event.totalSeats ? `${Math.round(((event.registeredCount || 0) / event.totalSeats) * 100)}%` : null;
+  const seatLabel = event.totalSeats ? `${seatPct} seats filled` : null;
+  const safeSeatPct = seatPct && !isNaN(parseFloat(seatPct)) ? seatPct : null;
+
+  const { registered } = event;
+
   const [isOpen, setOpen] = useState(false);
   const [status, setStatus] = useState('default');
 
   const open = (s) => { setStatus(s); setOpen(true); };
   const iconStyleColor = style.color;
-
-  // Guard against NaN/invalid seatPct
-  const safeSeatPct = seatPct && !isNaN(parseFloat(seatPct)) ? seatPct : null;
 
   const modal = isOpen && createPortal(
     <RegistrationModal
@@ -49,7 +57,7 @@ export default function EventCard({ event, onEdit, onDelete, onRegister, onUnreg
                 <span className="material-symbols-outlined text-[14px]">delete</span>
               </button>
             )}
-            <span className={`retro-badge ml-2 px-2 py-0.5 border-2 ${headerBg === 'bg-white' ? 'border-black bg-white text-black' : 'border-black bg-black/20 text-black'}`}>{event?.date}</span>
+            <span className={`retro-badge ml-2 px-2 py-0.5 border-2 ${headerBg === 'bg-white' ? 'border-black bg-white text-black' : 'border-black bg-black/20 text-black'}`}>{displayDate}</span>
           </div>
         </div>
         <div className="p-5 flex-1 flex flex-col justify-between">
@@ -57,7 +65,7 @@ export default function EventCard({ event, onEdit, onDelete, onRegister, onUnreg
             {registered && (
               <div className="retro-badge bg-retro-red text-white w-fit mb-2 shadow-retro-sm">⭐ Registered</div>
             )}
-            <h3 className="retro-title text-lg mb-1">{title}</h3>
+            <h3 className="retro-title text-lg mb-1">{event.title}</h3>
             <p className="text-sm font-medium text-black/60 mb-3 line-clamp-2">{event?.description}</p>
             <div className="meta-row flex-col gap-1.5 mb-4 items-start">
               <span className="meta-item"><span className="material-symbols-outlined text-sm">location_on</span>{event?.location}</span>
